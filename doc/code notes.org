@@ -1,0 +1,158 @@
+#+title: clojure-contracts-sugar code notes
+#+tags: clojure aspect contract sugar
+#+options: H:5 toc:nil
+#+options: ^:{}
+#+STARTUP: hidestars
+#+TAGS: noexport(e)
+#+EXPORT_EXCLUDE_TAGS: noexport
+#+OCTOPRESS_CATEGORIES: clojure aspect contract sugar
+#+OCTOPRESS_COMMENTS: getting started with clojure-contracts-sugar
+#+BEGIN_QUOTE
+TL;DR: clojure-contracts-sugar - some implementations notes
+#+END_QUOTE
+
+* The Stores
+
+** Contracts Store
+
+Contract definitions are held  in the Contracts Store.
+The store is a an clojure.core.memoize cache.
+
+** Aspects Store
+
+Aspect Contracts definitions are held in the Aspects Store. The Aspect
+Store is also a clojure.core.memoize cache and the Aspects Store is
+accessed via the Contracts Store
+
+** Constraints Stores
+
+Aspect definition are "compiled" into constraints.  Constraints are
+also memoized in the Constraints Store, which is held in the Contracts Store.
+
+* Aspect Contracts
+
+Aspect Contracts are applied to existing functions to either update the
+original function (update-contract-aspects) or create a new constrained
+function (apply-contract-aspects).
+
+For example:
+
+#+BEGIN_SRC clojure :tangle no
+(defn base-fn1 [m] (println "expecting a map") m)
+(def constrained-fn-suck-and-spit-a-map (clojure-contracts-sugar/apply-contract-aspects base-fn1 :map))
+#+END_SRC
+
+will created a new fn (_constrained-fn-suck-and-spit-a-map_) using
+_base-fn_ but constrained to suck and spit a map.
+
+The following will "update" an existing function with an aspect contract applied
+
+#+BEGIN_SRC clojure :tangle no
+(defn base-fn2 [m] (println "expecting a vector") m)
+(clojure-contracts-sugar/update-contract-aspects base-fn2 :vector)
+#+END_SRC
+
+* Aspect Contract Code Artefacts
+
+** Aspect Definition
+
+A normalised aspect definition is a vector of entries
+where each entry represents a contract for one *arity*
+for the *same* aspect.
+
+Each entry can be either as Aspect Form or an Aspect Constraint
+
+** Aspect Form
+
+Aspect Forms can be one of the following:
+
+*** Aspect Form - vector
+
+The first is the _clojure.core.contract_ vector form e.g.
+
+#+BEGIN_SRC clojure :tangle no
+'[[v] [map? => vector?]]
+#+END_SRC
+
+This is the "canonical" assertion format but the vector form is
+converted into the map form  and then
+converted to a constraint.
+
+*** Aspect Form - keyword
+
+Next is a keyword mnemonic.  The mnemonic is looked up in the
+Aspect Store to find its "real" definition - one of the other forms.
+
+Note built-in mnemonics (e.g. _:map_) do not have entries in the
+Aspect Store unless they have been updated.
+
+*** Aspect Form - map
+
+The the map form has keys _:suck_ and / or  _:spit_ e.g 
+
+#+BEGIN_SRC clojure :tangle no
+{:suck  [map? keyword?] :spit vector?}
+#+END_SRC
+
+The map form is the most useful when multiple forms have to be
+"composed" into a single contract.
+
+The values of the _:suck_ and _:spit_ keys are themselves *positional*
+lists of _Aspect Definitions_,
+one for each argument. The definitions are reduced, via forms, into
+the correct constraint.
+
+For example
+
+#+BEGIN_SRC clojure :tangle no
+[{:suck [:map :string] :spit :vector}]
+#+END_SRC
+
+will compose to a contract consuming two arguments, a map and
+string, and returning a vector:
+
+#+BEGIN_SRC clojure :tangle no
+[[arg0 arg1] [(map? arg0) (string? arg1) => (vector? %)]]
+#+END_SRC
+
+If you need to apply a multiple assertions to the same argument,
+provide a list.
+
+For example, to ensure all the keys of the map are keywords:
+
+#+BEGIN_SRC clojure :tangle no
+[{:suck [[:map (every? keyword? (keys arg0))] :string]] :spit :vector}]
+#+END_SRC
+
+will compose to
+
+#+BEGIN_SRC clojure :tangle no
+[[arg0 arg1] [(map? arg0) (every? keyword? (keys arg0)) (string? arg1) => (vector? %)]]
+#+END_SRC
+
+Note the _every?_ form explicitly specifies the _arg0_ argument
+
+** Aspect Constraints
+
+An Aspect Form is transformed into an *Aspect Constraint* (one-to-one)
+The aspect constraint can be used to generate the contract form
+for use with clojure.core.contracts's _contract_ macro.
+
+An Aspect Constraint can be thought of as the *compiled* Aspect
+Form.
+
+As Aspect Constraint is implemented as a protocol on a defrecord
+(there is only one type today).
+
+*** Aspect Arguments
+
+Aspect Constraints contains one or more Aspect Arguments (again a
+protocol) of type types (defrecords) suck and spit.
+
+**** Aspect Assertions
+
+Each Aspect Argument contains one or more Aspect Assertions (e.g.
+_map?_).  Again a protocol + defrecord.
+
+
+

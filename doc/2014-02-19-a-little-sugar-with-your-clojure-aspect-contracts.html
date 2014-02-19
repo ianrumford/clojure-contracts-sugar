@@ -1,0 +1,1880 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>A little sugar with your Clojure Aspect Contracts</title>
+<!-- 2014-02-19 Wed 13:33 -->
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="Ian Rumford" />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  pre.src-sh:before    { content: 'sh'; }
+  pre.src-bash:before  { content: 'sh'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-R:before     { content: 'R'; }
+  pre.src-perl:before  { content: 'Perl'; }
+  pre.src-java:before  { content: 'Java'; }
+  pre.src-sql:before   { content: 'SQL'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.right  { text-align: center;  }
+  th.left   { text-align: center;   }
+  th.center { text-align: center; }
+  td.right  { text-align: right;  }
+  td.left   { text-align: left;   }
+  td.center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara:nth-child(2) { display: inline; }
+  .footpara { display: block; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  /*]]>*/-->
+</style>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">A little sugar with your Clojure Aspect Contracts</h1>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1. Introduction</a></li>
+<li><a href="#sec-2">2. Aspect Oriented Programming</a></li>
+<li><a href="#sec-3">3. The Code</a>
+<ul>
+<li><a href="#sec-3-1">3.1. Jar is on Clojars</a></li>
+<li><a href="#sec-3-2">3.2. Repo is on Github</a></li>
+<li><a href="#sec-3-3">3.3. Documentation</a></li>
+<li><a href="#sec-3-4">3.4. Tests</a></li>
+<li><a href="#sec-3-5">3.5. Examples</a></li>
+</ul>
+</li>
+<li><a href="#sec-4">4. Using Contract Aspects - Apply v Update</a>
+<ul>
+<li><a href="#sec-4-1">4.1. Using apply-contract-aspects</a>
+<ul>
+<li><a href="#sec-4-1-1">4.1.1. Example - applying a built-in predicate</a></li>
+<li><a href="#sec-4-1-2">4.1.2. Example - applying your own custom predicate</a></li>
+</ul>
+</li>
+<li><a href="#sec-4-2">4.2. Using update-contract-aspects</a>
+<ul>
+<li><a href="#sec-4-2-1">4.2.1. Example - updating a function with a built-in predicate</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#sec-5">5. Applying Contracts to Many Arguments and the Result</a>
+<ul>
+<li><a href="#sec-5-1">5.1. Example - suck a map and keyword and spit a vector</a></li>
+<li><a href="#sec-5-2">5.2. Example - suck a map - with keyword keys and numeric values - and keyword and spit a vector</a></li>
+<li><a href="#sec-5-3">5.3. Example - specifying argument order explicitly</a></li>
+</ul>
+</li>
+<li><a href="#sec-6">6. Using CCC's contract definition form</a>
+<ul>
+<li><a href="#sec-6-1">6.1. Example - Using CCC's format to suck a map and spit a vector</a></li>
+<li><a href="#sec-6-2">6.2. Example - Using CCC's format to suck a map with keyword keys, and spit a vector</a></li>
+<li><a href="#sec-6-3">6.3. Example - using CCC's format with rich assertions</a></li>
+<li><a href="#sec-6-4">6.4. Example - using CCC's format in a suck definition</a></li>
+</ul>
+</li>
+<li><a href="#sec-7">7. Using Mnemonics</a>
+<ul>
+<li><a href="#sec-7-1">7.1. Using Mnemonics for Built-in Predicates</a>
+<ul>
+<li><a href="#sec-7-1-1">7.1.1. Example - using a built-in mnemonic</a></li>
+<li><a href="#sec-7-1-2">7.1.2. Example - applying built-in mnemonics to individual arguments and the result</a></li>
+</ul>
+</li>
+<li><a href="#sec-7-2">7.2. Changing a Built-in Mnemonic Contract Definition</a>
+<ul>
+<li><a href="#sec-7-2-1">7.2.1. Example - redefining the :map built-in mnemonic</a></li>
+</ul>
+</li>
+<li><a href="#sec-7-3">7.3. Adding and Using Custom Mnemonics</a>
+<ul>
+<li><a href="#sec-7-3-1">7.3.1. Example - using a custom mnemonic</a></li>
+</ul>
+</li>
+<li><a href="#sec-7-4">7.4. Using a Custom Mnemonic to package multiple arguments</a>
+<ul>
+<li><a href="#sec-7-4-1">7.4.1. Example - using a custom multiple argument suck mnemonic</a></li>
+</ul>
+</li>
+<li><a href="#sec-7-5">7.5. Using a Custom Mnemonic to package the complete contract</a>
+<ul>
+<li><a href="#sec-7-5-1">7.5.1. Example - using a custom mnemonic to package the whole contract</a></li>
+</ul>
+</li>
+<li><a href="#sec-7-6">7.6. Using Mnemonics in Custom Mnemonics</a>
+<ul>
+<li><a href="#sec-7-6-1">7.6.1. Example - using a mnemonic containing mnemonics</a></li>
+</ul>
+</li>
+<li><a href="#sec-7-7">7.7. Composing Mnemonics - resolving arguments</a>
+<ul>
+<li><a href="#sec-7-7-1">7.7.1. Example - swapping the keyword and map in the three level composed mnemonics</a></li>
+<li><a href="#sec-7-7-2">7.7.2. Example - using absolute arguments in mnemonics</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#sec-8">8. Beware mnemonic gotchas</a></li>
+<li><a href="#sec-9">9. Contracts with Multiple Arities</a>
+<ul>
+<li><a href="#sec-9-1">9.1. Example - two arities (map =&gt; number) and (map,keyword =&gt; vector)</a></li>
+<li><a href="#sec-9-2">9.2. Example - multiple arities using mixed CCC form and map form</a></li>
+</ul>
+</li>
+<li><a href="#sec-10">10. Final Words</a></li>
+<li><a href="#sec-11">11. Final Final Words</a></li>
+</ul>
+</div>
+</div>
+<blockquote>
+<p>
+TL;DR: clojure-contracts-sugar - some sugar  macros for clojure.core.contracts
+</p>
+</blockquote>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> Introduction</h2>
+<div class="outline-text-2" id="text-1">
+<p>
+Back in November 2012, in one of my first toe-dippings into
+[Clojure][ClojureHome], I wrote a
+[post][RumfordBlogClojureCoreContractsFirstTake] on my initial experiences
+with [Michael Fogus's][FogusHome]
+[clojure.core.contracts][ClojureCoreContractsGithub] (hereafter just
+<b>CCC</b>).
+</p>
+
+<p>
+The rest of this post assumes you have a passing familiarity with
+<b>CCC</b>. If you aren't, you may find my 
+[original post][RumfordBlogClojureCoreContractsFirstTake] a digestible introduction.
+</p>
+
+<p>
+Although using <b>CCC</b> for
+<span class="underline">[contracts programming][DesignByContractWikipedia]</span> is self-evident,
+it was the opportunity to use the [Clojure's][ClojureHome]
+[:pre and :post assertions][FogusBlogClojurePreandPost] to support the
+concept and potential of <span class="underline">aspects</span> as defined originally by
+[Gregor Kiczales][KiczalesHome] in his work on
+[Aspect Oriented Programming][AOPWikipedia] (<b>AOP</b>).
+</p>
+
+<p>
+In this post I'm following through the experiments and ideas of the
+[original post][RumfordBlogClojureCoreContractsFirstTake], and
+illustrating with some examples using a new library
+I've written recently - [clojure-contracts-sugar][ClojureContractsSugarGithub] (<b>CHUGAR</b>).
+</p>
+
+<p>
+In the [original post][RumfordBlogClojureCoreContractsFirstTake] I made the point that <b>CCC</b> could do with some
+productivity aids - <span class="underline">sugar</span> - to ease the rich usage of <b>CCC</b>. <b>CHUGAR</b>
+attempts to supply that <span class="underline">sugar</span> and you can think of this post as
+partly a <span class="underline">getting started</span> tutorial for the library.
+</p>
+
+<p>
+In the simplest cases, <b>CHUGAR</b> reduces to <b>CCC</b> albeit with a slightly
+more flexible syntax. If your contracts needs are straightforward, you're
+likely better off using <b>CCC</b> or even [:pre and :post assertions][Fogusblogclojurepreandpost] 
+directly.
+</p>
+
+<p>
+That said, I would encourage you though to have a look at the sections
+on <span class="underline">mnemonics</span> below which offer an easy way to use (and re-use) rich
+and flexible aspect contracts.
+</p>
+
+<p>
+Note, the usual caveat,  <b>CHUGAR</b>  is a work in progress and really is
+intended to be only a starting point (foundation) for  explorations of
+contracts from [Clojure][ClojureHome].  The API is "settling" but may change.
+</p>
+
+<blockquote>
+<p>
+A quick note on terminology: in the [original
+post][RumfordBlogClojureCoreContractsFirstTake] I used <b>suck</b> to identify
+the (input) arguments of a function and <b>spit</b> the result (return value). That
+"convention" is used extensively both here and in the library's code.
+</p>
+</blockquote>
+
+<pre class="example">
+&lt;!-- more --&gt;
+</pre>
+</div>
+</div>
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> Aspect Oriented Programming</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+I first bumped into <b>AOP</b> reading the <b>Communications of the ACM's</b>
+[October 2001 edition][CACMOct2001] special edition on AOP (paywall
+for content). In their [introductory article][CACMArticleAOPIntro] in
+that volume, <span class="underline">Elrad, Filman and Bader</span> explains the need for AOP like
+so:
+</p>
+
+<blockquote>
+<p>
+Any structural realization of a system will find that some concerns
+are neatly localized within a specific structural piece, while others
+cross multiple elements. AOP is focused on mechanisms for simplifying
+the realization of such crosscutting concerns.
+</p>
+</blockquote>
+
+<p>
+and
+</p>
+
+<blockquote>
+<p>
+Separating the expressions of multiple concerns in programming
+systems promises simpler system evolution, more comprehensible
+systems, adaptability, customizability, and easier reuse. 
+</p>
+</blockquote>
+
+<p>
+They go on to highlight the opportunity for a services paradigm for
+common requirements such as authentication, logging, etc facilitating
+clear separation of concerns: Leaving the application developers to
+focus of their agenda whilst minimising the potential for "misuse",
+whether by omission or commission, of the specialist subsystems e.g. authentication
+which may be  supported by  other, third,  parties:
+</p>
+
+<blockquote>
+<p>
+Implicit invocation is a virtue in this age of increased software
+complexity, as domain experts for an application are unlikely to be
+familiar with intricacies of specialized algorithms for distribution,
+authentication, access control, synchronization, encryption,
+redundancy, and so forth, and cannot be trusted to always invoke them
+appropriately in their programs.
+</p>
+</blockquote>
+
+<p>
+In [Ramnivas Laddad's][LaddadTwitter]  [book on AspectJ][LaddadBookAspectJinAction], he says:
+</p>
+
+<blockquote>
+<p>
+AOP is a new methodology that provides separation of crosscutting concerns
+by introducing a new unit of modularization—an aspect—that crosscuts other
+modules. With AOP you implement crosscutting concerns in aspects instead of
+fusing them in the core modules.
+</p>
+</blockquote>
+
+<blockquote>
+<p>
+The result is that AOP modularizes the cross-cutting concerns in a
+clear-cut fashion, yielding a system architecture that is easier to
+design, implement, and maintain.
+</p>
+</blockquote>
+
+<p>
+In another take, in [Emerick][EmerickHome], [Carper][CarperHome] and [Grand's][GrandHome]  book [Clojure Programming][ClojureProgrammingBook], they say:
+</p>
+
+<blockquote>
+<p>
+Aspect-oriented programming (AOP) is a methodology that allows separation of cross-cutting
+concerns. In object-oriented code, a behavior or process is often repeated in
+multiple classes, or spread across multiple methods. AOP is a way to abstract this
+behavior and apply it to classes and methods without using inheritance.
+</p>
+</blockquote>
+</div>
+</div>
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> The Code</h2>
+<div class="outline-text-2" id="text-3">
+</div><div id="outline-container-sec-3-1" class="outline-3">
+<h3 id="sec-3-1"><span class="section-number-3">3.1</span> Jar is on Clojars</h3>
+<div class="outline-text-3" id="text-3-1">
+<p>
+The jar is on [Clojars][ClojarsClojureContractsSugar]:
+</p>
+
+<p>
+[Leiningen][LeiningenHome] dependency information:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure">[name.rumford/clojure-contracts-sugar <span style="color: #8b2252;">"0.1.0"</span>]
+</pre>
+</div>
+
+<p>
+[Maven][MavenHome] dependency information:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-xml">&lt;<span style="color: #0000ff;">dependency</span>&gt;
+  &lt;<span style="color: #0000ff;">groupId</span>&gt;name.rumford&lt;/<span style="color: #0000ff;">groupId</span>&gt;
+  &lt;<span style="color: #0000ff;">artifactId</span>&gt;clojure-contracts-sugar&lt;/<span style="color: #0000ff;">artifactId</span>&gt;
+  &lt;<span style="color: #0000ff;">version</span>&gt;0.1.0&lt;/<span style="color: #0000ff;">version</span>&gt;
+&lt;/<span style="color: #0000ff;">dependency</span>&gt;
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-3-2" class="outline-3">
+<h3 id="sec-3-2"><span class="section-number-3">3.2</span> Repo is on Github</h3>
+<div class="outline-text-3" id="text-3-2">
+<p>
+The [repo][ClojureContractsSugarGithub] is  on [github][ClojureContractsSugarGithub].
+As you might expect, its organised as a [Leiningen][LeiningenHome]
+project so you'll want Leiningen [installed][LeiningenGithub].
+</p>
+
+<p>
+The project structure is Maven-style but there is only Clojure today:
+<span class="underline">./src/main/clojure</span> and <span class="underline">./src/test/clojure</span>.
+</p>
+
+<p>
+The code uses another of my other new libraries
+[clojure-carp][ClojureCarpGithub] for some utility functions,  exceptions, diagnostics and
+other miscellany. 
+</p>
+</div>
+</div>
+<div id="outline-container-sec-3-3" class="outline-3">
+<h3 id="sec-3-3"><span class="section-number-3">3.3</span> Documentation</h3>
+<div class="outline-text-3" id="text-3-3">
+<p>
+The repo's <span class="underline">./doc</span> folder contains the source of this post: its an
+[emacs][emacshome] [org][orgmodehome] file
+[tangled][orgmodemanualextractsourcecode] to generate the examples below
+in a [Leiningen][LeiningenHome] project.
+</p>
+
+<p>
+The folder also contains an (org and html) file <span class="underline">code-notes</span> offering a <span class="underline">brief</span>
+high-level overview of the main code artefacts.
+</p>
+</div>
+</div>
+<div id="outline-container-sec-3-4" class="outline-3">
+<h3 id="sec-3-4"><span class="section-number-3">3.4</span> Tests</h3>
+<div class="outline-text-3" id="text-3-4">
+<p>
+There are a number of tests providing reasonable code coverage that can be run from the repo:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-bash">lein test aspect-tests1
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-3-5" class="outline-3">
+<h3 id="sec-3-5"><span class="section-number-3">3.5</span> Examples</h3>
+<div class="outline-text-3" id="text-3-5">
+<p>
+The examples below can be found in the repo's examples folder
+(specifically in <span class="underline">./examples/aspect_examples</span>) and they can be run using
+<span class="underline">lein</span> in the usual way:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-bash">cd ./examples/aspect-examples
+lein deps
+lein run -m aspect-examples1
+</pre>
+</div>
+
+<p>
+The examples use a couple of harness functions - <span class="underline">will-work</span> and
+<span class="underline">will-fail</span> - to run tests.
+</p>
+
+<p>
+<span class="underline">will-work</span> takes as arguments the constrained
+function and a list of arguments. 
+</p>
+
+<p>
+<span class="underline">will-fail</span> similarly takes just the constrained function and its arguments and
+catches the <b>AssertionError</b> expected to be thrown.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #006400;">;; </span><span style="color: #006400;">Helper for accessor examples expected to work.  Returns the expected result, else fails</span>
+
+<span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">defn</span> <span style="color: #0000ff;">will-work</span>
+  [fn-constrained &amp; fn-args]
+  <span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">let</span> [actual-result <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">apply</span> fn-constrained fn-args<span style="color: #8c8c8c;">)</span>]
+    <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">println</span> <span style="color: #8b2252;">"will-work"</span> <span style="color: #8b2252;">"worked as expected"</span> <span style="color: #8b2252;">"actual-result"</span> actual-result <span style="color: #8b2252;">"fn-constrained"</span> fn-constrained <span style="color: #8b2252;">"fn-args"</span> fn-args<span style="color: #8c8c8c;">)</span>
+    actual-result<span style="color: #8c8c8c;">))</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">Helper for accessor examples expected to fail.  Catches the expected AssertionError, else fails.</span>
+<span style="color: #006400;">;; </span><span style="color: #006400;">A nil return from the function is ok</span>
+
+<span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">defn</span> <span style="color: #0000ff;">will-fail</span>
+  [fn-constrained &amp; fn-args]
+  <span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">try</span>
+    <span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">do</span>
+      <span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">let</span> [return-value <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">apply</span> fn-constrained fn-args<span style="color: #8c8c8c;">)</span>]
+        <span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">if</span> return-value <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">assert</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">println</span> <span style="color: #8b2252;">"will-fail"</span> <span style="color: #8b2252;">"DID NOT FAIL"</span> <span style="color: #8b2252;">"did not cause AssertionError"</span> <span style="color: #8b2252;">"fn-constrained"</span> fn-constrained <span style="color: #8b2252;">"fn-args"</span> fn-args <span style="color: #8b2252;">"RETURN-VALUE"</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">class</span> return-value<span style="color: #8c8c8c;">)</span> return-value<span style="color: #8c8c8c;">)))))</span>
+    <span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">catch</span> <span style="color: #483d8b;">AssertionError</span> e
+      <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">println</span> <span style="color: #8b2252;">"will-fail"</span> <span style="color: #8b2252;">"failed as expected"</span> <span style="color: #8b2252;">"fn-constrained"</span> fn-constrained <span style="color: #8b2252;">"fn-args"</span> fn-args<span style="color: #8c8c8c;">))))</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-4" class="outline-2">
+<h2 id="sec-4"><span class="section-number-2">4</span> Using Contract Aspects - Apply v Update</h2>
+<div class="outline-text-2" id="text-4">
+<p>
+The libary has two main aspect contract macros:
+<span class="underline">apply-contract-aspects</span> and <span class="underline">update-contract-aspects</span>.
+</p>
+
+<p>
+The majority of examples below use <span class="underline">apply-contract-aspects</span> but
+<span class="underline">update-contract-aspects</span> could be used just as well.
+</p>
+
+<p>
+A couple of very simple examples follow to give a <span class="underline">flavour</span> of their
+usage with  the details  expanded upon in the following sections.
+</p>
+</div>
+
+<div id="outline-container-sec-4-1" class="outline-3">
+<h3 id="sec-4-1"><span class="section-number-3">4.1</span> Using apply-contract-aspects</h3>
+<div class="outline-text-3" id="text-4-1">
+<p>
+The first macro, <span class="underline">apply-contract-aspects</span>, applies one or more aspects to an
+existing function and returns a <b>new</b> function.  
+</p>
+</div>
+
+<div id="outline-container-sec-4-1-1" class="outline-4">
+<h4 id="sec-4-1-1"><span class="section-number-4">4.1.1</span> Example - applying a built-in predicate</h4>
+<div class="outline-text-4" id="text-4-1-1">
+<p>
+The below will create, from the original function
+<span class="underline">any-fn</span>, a new constrained function <span class="underline">map-fn</span> that will <b>only</b> suck a
+map as its input argument.  (The return value will be unconstrained.)
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #006400;">;; </span><span style="color: #006400;">Example - applying a built-in predicate</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">any-fn is the "base" function</span>
+
+<span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">defn</span> <span style="color: #0000ff;">any-fn</span> [x] x<span style="color: #8c8c8c;">)</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">map-fn is the new function constrained to suck a map</span>
+
+<span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">def</span> <span style="color: #0000ff;">suck-map-fn1</span> <span style="color: #8c8c8c;">(</span>apply-contract-aspects any-fn map?<span style="color: #8c8c8c;">))</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">This will work</span>
+
+<span style="color: #8c8c8c;">(</span>will-work suck-map-fn1 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3}<span style="color: #8c8c8c;">)</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">But this will fail since suck-map-fn1 can only suck a map</span>
+
+<span style="color: #8c8c8c;">(</span>will-fail suck-map-fn1 [1 2 3]<span style="color: #8c8c8c;">)</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">The original function any-fn is unchanged and not constrained in any way</span>
+
+<span style="color: #8c8c8c;">(</span>will-work any-fn {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3}<span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-work any-fn [1 2 3]<span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-work any-fn <span style="color: #008b8b;">:a</span><span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-work any-fn 99<span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+
+<blockquote>
+<p>
+The map? predicate in the above call to <span class="underline">apply-contract-aspects</span> is  the <b>Contract Definition</b>.
+</p>
+</blockquote>
+
+<p>
+Under the covers, <span class="underline">apply-contract-aspects</span> generates a <b>CCC</b> contract
+similar to the  below
+where the <span class="underline">ctx-aspect2721</span> is the random, but unique, name (gensym) of
+the contract function.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #006400;">;; </span><span style="color: #006400;">Example - example of the generated clojure.core.contract call</span>
+<span style="color: #8c8c8c;">(</span>clojure.core.contracts/contract ctx-aspect2721 <span style="color: #8b2252;">"\"ctx-aspect2721\""</span> [arg0] [<span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">map?</span> arg0<span style="color: #8c8c8c;">)</span>]<span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+
+<blockquote>
+<p>
+Quick note on argument names: the arguments in a generated contract
+are given names <span class="underline">arg0</span>, <span class="underline">arg1</span>, etc. These names can be used to
+ refer explicitly to specific arguments. More on this later.
+</p>
+</blockquote>
+
+<p>
+Similarly, to suck a vector:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #006400;">;; </span><span style="color: #006400;">Example - suck a vector</span>
+
+<span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">def</span> <span style="color: #0000ff;">suck-vector-fn1</span> <span style="color: #8c8c8c;">(</span>apply-contract-aspects (fn [x] x<span style="color: #8c8c8c;">)</span> vector?<span style="color: #8c8c8c;">))</span>
+
+<span style="color: #8c8c8c;">(</span>will-work suck-vector-fn1 [1 2 3]<span style="color: #8c8c8c;">)</span>
+
+<span style="color: #8c8c8c;">(</span>will-fail suck-vector-fn1 99<span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-4-1-2" class="outline-4">
+<h4 id="sec-4-1-2"><span class="section-number-4">4.1.2</span> Example - applying your own custom predicate</h4>
+<div class="outline-text-4" id="text-4-1-2">
+<p>
+You can of course create and  use your own <b>custom</b> predicate function, returning true or false as
+decided.  You can constrain multiple input arguments and/or the return
+value in a custom predicate.
+</p>
+
+<p>
+A simple way to create a custom predicate would be to use [:pre and post assertions][FogusBlogClojurePreandPost] 
+in an "identity" function.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #006400;">;; </span><span style="color: #006400;">Example - applying your own custom predicate</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">The custom predicate ensures the argument is a map, its keys are keywords and values are numbers.</span>
+
+<span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">defn</span> <span style="color: #0000ff;">is-map-with-keyword-keys-and-numeric-values?</span>
+  [x]
+  {<span style="color: #008b8b;">:pre</span> [<span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">map?</span> x<span style="color: #8c8c8c;">)</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> keyword? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">keys</span> x<span style="color: #8c8c8c;">))</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> number? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">vals</span> x<span style="color: #8c8c8c;">))</span>]}
+  x<span style="color: #8c8c8c;">)</span>
+
+<span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">def</span> <span style="color: #0000ff;">map-keyword-keys-numeric-values-fn1</span> <span style="color: #8c8c8c;">(</span>apply-contract-aspects any-fn is-map-with-keyword-keys-and-numeric-values?<span style="color: #8c8c8c;">))</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">This will work</span>
+
+<span style="color: #8c8c8c;">(</span>will-work map-keyword-keys-numeric-values-fn1 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3}<span style="color: #8c8c8c;">)</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">But these will fail the contracts</span>
+
+<span style="color: #8c8c8c;">(</span>will-fail map-keyword-keys-numeric-values-fn1 {<span style="color: #008b8b;">:a</span> <span style="color: #008b8b;">:x</span> <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3}<span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-fail map-keyword-keys-numeric-values-fn1 {<span style="color: #8b2252;">"x"</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3}<span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-fail map-keyword-keys-numeric-values-fn1 [1 2 3]<span style="color: #8c8c8c;">)</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">As before the original function any-fn is unchanged and not constrained in any way</span>
+
+<span style="color: #8c8c8c;">(</span>will-work any-fn {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3}<span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-work any-fn [1 2 3]<span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-work any-fn <span style="color: #008b8b;">:a</span><span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-work any-fn 99<span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-4-2" class="outline-3">
+<h3 id="sec-4-2"><span class="section-number-3">4.2</span> Using update-contract-aspects</h3>
+<div class="outline-text-3" id="text-4-2">
+<p>
+The second macro, <span class="underline">update-contract-aspects</span>, "changes" (using
+<span class="underline">alter-var-root</span>) an existing function.  
+</p>
+</div>
+
+<div id="outline-container-sec-4-2-1" class="outline-4">
+<h4 id="sec-4-2-1"><span class="section-number-4">4.2.1</span> Example - updating a function with a built-in predicate</h4>
+<div class="outline-text-4" id="text-4-2-1">
+<p>
+Essentially the same example as above except the source function but <span class="underline">any-fn</span> is changed to <b>only</b> suck a map.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #006400;">;; </span><span style="color: #006400;">Example - updating a function with a built-in predicate</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">any-fn is "changed" to now only suck a map</span>
+
+<span style="color: #8c8c8c;">(</span>update-contract-aspects any-fn map?<span style="color: #8c8c8c;">)</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">This will work</span>
+
+<span style="color: #8c8c8c;">(</span>will-work any-fn {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3}<span style="color: #8c8c8c;">)</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">But this will fail as any-fn can now only suck a map</span>
+
+<span style="color: #8c8c8c;">(</span>will-fail any-fn [1 2 3]<span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-5" class="outline-2">
+<h2 id="sec-5"><span class="section-number-2">5</span> Applying Contracts to Many Arguments and the Result</h2>
+<div class="outline-text-2" id="text-5">
+<p>
+Many functions will have more than one (suck) argument, 
+even different arities, each
+likely requiring its own specific <span class="underline">assertions</span> (constraints), and the (spit) result
+maybe different assertion(s) again.
+</p>
+
+<p>
+To support a rich definition of the assertions required by each argument and the return value, 
+the contract definition can  be specified as a map with two keys: <span class="underline">:suck</span>
+and <span class="underline">:spit</span> where the value of the keys are the assertions to apply to
+the input arguments and return values. An example should clarify.
+</p>
+</div>
+
+<div id="outline-container-sec-5-1" class="outline-3">
+<h3 id="sec-5-1"><span class="section-number-3">5.1</span> Example - suck a map and keyword and spit a vector</h3>
+<div class="outline-text-3" id="text-5-1">
+<p>
+The below defines a two argument contract: the first argument
+must be a map, the second a keyword; with a vector expected as the
+result:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure">{<span style="color: #008b8b;">:suck</span> [map? keyword?] <span style="color: #008b8b;">:spit</span> vector?}
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #006400;">;; </span><span style="color: #006400;">Example - suck a map and keyword and spit a vector</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">In this example, the assertion constrains the function to suck a map and keyword</span>
+<span style="color: #006400;">;; </span><span style="color: #006400;">and spit a vector.  </span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">The function looks up the value of the keyword in the map.</span>
+
+<span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">def</span> <span style="color: #0000ff;">suck-map-keyword-spit-vector-fn1</span> <span style="color: #8c8c8c;">(</span>apply-contract-aspects (fn [m k] <span style="color: #8c8c8c;">(</span>k m<span style="color: #8c8c8c;">))</span> {<span style="color: #008b8b;">:suck</span> [map? keyword?] <span style="color: #008b8b;">:spit</span> vector?}<span style="color: #8c8c8c;">))</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">This will work as key :c contains a vector</span>
+
+<span style="color: #8c8c8c;">(</span>will-work suck-map-keyword-spit-vector-fn1 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> [1 2 3]} <span style="color: #008b8b;">:c</span><span style="color: #8c8c8c;">)</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">But these will fail</span>
+
+<span style="color: #8c8c8c;">(</span>will-fail suck-map-keyword-spit-vector-fn1 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #008b8b;">:c</span><span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-fail suck-map-keyword-spit-vector-fn1 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #008b8b;">:d</span><span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+
+<p>
+Some notes:
+</p>
+
+<ul class="org-ul">
+<li>assertions are matched positionally to their arguments
+</li>
+</ul>
+
+<p>
+The <span class="underline">map?</span> constrains <b>only</b> the first argument (arg0) and the
+<span class="underline">keyword?</span> constrains <b>only</b> the second argument (arg1); the returned value must be a <span class="underline">vector?</span>.
+</p>
+
+<ul class="org-ul">
+<li>if there is only one argument, the enclosing vector is not needed
+</li>
+</ul>
+
+<p>
+Just as the return value can be specified as just <span class="underline">vector?</span> and not
+<span class="underline">[vector?]</span>, if the function only sucked a map <span class="underline">:suck map?</span> would be sufficient e.g. <span class="underline">{:suck map? :spit vector?}</span>.
+</p>
+</div>
+</div>
+<div id="outline-container-sec-5-2" class="outline-3">
+<h3 id="sec-5-2"><span class="section-number-3">5.2</span> Example - suck a map - with keyword keys and numeric values - and keyword and spit a vector</h3>
+<div class="outline-text-3" id="text-5-2">
+<p>
+To include additional assertions on the map in the previous example to
+insist on keyword keys and numeric values, the assertion for the map
+argument would be changed to a vector of constraints.  
+</p>
+
+<p>
+Note the use of
+<span class="underline">arg0</span> to refer to the input map in the <span class="underline">every?</span> clauses.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure">{<span style="color: #008b8b;">:suck</span> [[map? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> keyword? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">keys</span> arg0<span style="color: #8c8c8c;">))</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> number? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">vals</span> arg0<span style="color: #8c8c8c;">))</span>] keyword?] <span style="color: #008b8b;">:spit</span> vector?}
+</pre>
+</div>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #006400;">;; </span><span style="color: #006400;">Example - suck a map - with keyword keys and numeric values - and keyword and spit a vector</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">In this example, the contract constrains the function to suck a map and keyword, spit a number.</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">The map must have keywords keys and numeric values.</span>
+
+<span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">def</span> <span style="color: #0000ff;">suck-map-keyword-spit-number-fn1</span> <span style="color: #8c8c8c;">(</span>apply-contract-aspects (fn [m k] <span style="color: #8c8c8c;">(</span>k m<span style="color: #8c8c8c;">))</span> {<span style="color: #008b8b;">:suck</span> [[map? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> keyword? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">keys</span> arg0<span style="color: #8c8c8c;">))</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> number? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">vals</span> arg0<span style="color: #8c8c8c;">))</span>] keyword?] <span style="color: #008b8b;">:spit</span> number?}<span style="color: #8c8c8c;">))</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">This will work</span>
+
+<span style="color: #8c8c8c;">(</span>will-work suck-map-keyword-spit-number-fn1 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #008b8b;">:a</span><span style="color: #8c8c8c;">)</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">But these will fail their contracts</span>
+
+<span style="color: #8c8c8c;">(</span>will-fail suck-map-keyword-spit-number-fn1 {<span style="color: #008b8b;">:a</span> <span style="color: #008b8b;">:x</span> <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #008b8b;">:a</span><span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-fail suck-map-keyword-spit-number-fn1 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #008b8b;">:d</span><span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-fail suck-map-keyword-spit-number-fn1 {<span style="color: #8b2252;">"x"</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #008b8b;">:c</span><span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-5-3" class="outline-3">
+<h3 id="sec-5-3"><span class="section-number-3">5.3</span> Example - specifying argument order explicitly</h3>
+<div class="outline-text-3" id="text-5-3">
+<p>
+Specifying the arguments' order implicitly by their position in the suck assertion list is
+natural but there may be times when you want to explicitly define the
+argument position and its assertions, irrespective of its position in the
+assertion list.
+</p>
+
+<p>
+You can do this by providing a map where the keys are the argument
+positions and the values the assertion list to apply to that argument.
+</p>
+
+<p>
+The example below is a variant of the map and keyword example above but the keyword
+is the first argument (key 0) and the map the second (key 1). The map
+must have  keyword keys and
+numeric values as before.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure">{<span style="color: #008b8b;">:suck</span> {0 <span style="color: #008b8b;">:keyword</span> 1 [<span style="color: #008b8b;">:map</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> keyword? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">keys</span> arg0<span style="color: #8c8c8c;">))</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> number? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">vals</span> arg0<span style="color: #8c8c8c;">))</span>]} <span style="color: #008b8b;">:spit</span> <span style="color: #008b8b;">:number</span>}
+</pre>
+</div>
+
+<blockquote>
+<p>
+Note the use of <span class="underline">arg0</span> to refer to the input map in the <span class="underline">every?</span>
+clauses <b>even though</b> the map is the <b>second</b> argument (and will
+therefore be <span class="underline">arg1</span> in the contract).
+</p>
+
+<p>
+That's because the <span class="underline">every?</span> forms will be rewritten <b>automatically</b> to
+reflect the map's  position in the argument order i.e. its <span class="underline">arg1</span>. The point is that the
+map assertion does not change no matter where the map appears in
+the argument order.
+</p>
+
+<p>
+This is similar to when mnemonics are composed - see later.
+</p>
+</blockquote>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #006400;">;; </span><span style="color: #006400;">Example - specifying argument order explicitly</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">In this example, the arguments are specified by their explicit position in the argument order</span>
+
+<span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">def</span> <span style="color: #0000ff;">explicit-argument-order-fn1</span> <span style="color: #8c8c8c;">(</span>apply-contract-aspects (fn [k m] <span style="color: #8c8c8c;">(</span>k m<span style="color: #8c8c8c;">))</span> {<span style="color: #008b8b;">:suck</span> {0 <span style="color: #008b8b;">:keyword</span> 1 [<span style="color: #008b8b;">:map</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> keyword? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">keys</span> arg0<span style="color: #8c8c8c;">))</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> number? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">vals</span> arg0<span style="color: #8c8c8c;">))</span>]} <span style="color: #008b8b;">:spit</span> <span style="color: #008b8b;">:number</span>}<span style="color: #8c8c8c;">))</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">This will work</span>
+
+<span style="color: #8c8c8c;">(</span>will-work explicit-argument-order-fn1 <span style="color: #008b8b;">:a</span> {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3}<span style="color: #8c8c8c;">)</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">But these will fail their contracts</span>
+
+<span style="color: #8c8c8c;">(</span>will-fail explicit-argument-order-fn1 <span style="color: #008b8b;">:a</span> {<span style="color: #008b8b;">:a</span> <span style="color: #008b8b;">:x</span> <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3}<span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-fail explicit-argument-order-fn1 <span style="color: #008b8b;">:d</span> {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3}<span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-fail explicit-argument-order-fn1 <span style="color: #008b8b;">:c</span> {<span style="color: #8b2252;">"x"</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3}<span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+
+<p>
+BTW The contract looks like this. Note the map is <span class="underline">arg1</span>.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #8c8c8c;">(</span>clojure.core.contracts/contract ctx-aspect3000 <span style="color: #8b2252;">"\"ctx-aspect3000\""</span> [arg0 arg1] [<span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">keyword?</span> arg0<span style="color: #8c8c8c;">)</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">map?</span> arg1<span style="color: #8c8c8c;">)</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> keyword? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">keys</span> arg1<span style="color: #8c8c8c;">))</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> number? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">vals</span> arg1<span style="color: #8c8c8c;">))</span> =&gt; <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">number?</span> %<span style="color: #8c8c8c;">)</span>]<span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-6" class="outline-2">
+<h2 id="sec-6"><span class="section-number-2">6</span> Using CCC's contract definition form</h2>
+<div class="outline-text-2" id="text-6">
+<p>
+For those familiar with <b>CCC</b>, you can also use <b>CCC's</b> contract specification format as well.
+But note the signature vector (e.g. '[v]) and assertion vector (e.g.
+'[map?]) must be inside a third  vector:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure">[[v] [map?]]
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-6-1" class="outline-3">
+<h3 id="sec-6-1"><span class="section-number-3">6.1</span> Example - Using CCC's format to suck a map and spit a vector</h3>
+<div class="outline-text-3" id="text-6-1">
+<p>
+The assertion vector can have any assertions supported by <b>CCC</b>.  For example, here the constrained function
+below sucks a map and spits a vector:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #006400;">;; </span><span style="color: #006400;">Example - suck map and spit vector using CCC form</span>
+
+<span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">def</span> <span style="color: #0000ff;">suck-map-spit-vector-fn1</span> <span style="color: #8c8c8c;">(</span>apply-contract-aspects (fn [m] <span style="color: #8c8c8c;">(</span><span style="color: #008b8b;">:c</span> m<span style="color: #8c8c8c;">))</span> [[v] [map? =&gt; vector?]]<span style="color: #8c8c8c;">))</span>
+
+<span style="color: #8c8c8c;">(</span>will-work suck-map-spit-vector-fn1 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> [1 2 3]}<span style="color: #8c8c8c;">)</span>
+
+<span style="color: #8c8c8c;">(</span>will-fail suck-map-spit-vector-fn1 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 1}<span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-6-2" class="outline-3">
+<h3 id="sec-6-2"><span class="section-number-3">6.2</span> Example - Using CCC's format to suck a map with keyword keys, and spit a vector</h3>
+<div class="outline-text-3" id="text-6-2">
+<p>
+Or, additionally, to ensure the map's keys are all keywords:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #006400;">;; </span><span style="color: #006400;">Example - suck map, spit vector but also all map keys are keywords</span>
+
+<span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">def</span> <span style="color: #0000ff;">suck-map-keyword-keys-fn1</span> <span style="color: #8c8c8c;">(</span>apply-contract-aspects (fn [m] <span style="color: #8c8c8c;">(</span><span style="color: #008b8b;">:c</span> m<span style="color: #8c8c8c;">))</span> [[v] [map? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> keyword? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">keys</span> v<span style="color: #8c8c8c;">))</span> =&gt; vector?]]<span style="color: #8c8c8c;">))</span>
+
+<span style="color: #8c8c8c;">(</span>will-work suck-map-keyword-keys-fn1 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> [1 2 3]}<span style="color: #8c8c8c;">)</span>
+
+<span style="color: #8c8c8c;">(</span>will-fail suck-map-keyword-keys-fn1 {<span style="color: #8b2252;">"x"</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 1}<span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-6-3" class="outline-3">
+<h3 id="sec-6-3"><span class="section-number-3">6.3</span> Example - using CCC's format with rich assertions</h3>
+<div class="outline-text-3" id="text-6-3">
+<p>
+<b>CCC</b>  supports the specification of rich
+assertions. For a two argument function (map, keyword), where the map's
+keys are keywords, the values numbers; and the return value
+unconstrained, in CCC's format, the full contract would look like this:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure">[[m k] [<span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">map?</span> m<span style="color: #8c8c8c;">)</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> keyword <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">keys</span> m<span style="color: #8c8c8c;">))</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> number? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">vals</span> m<span style="color: #8c8c8c;">))</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">keyword?</span> k<span style="color: #8c8c8c;">)</span>]]
+</pre>
+</div>
+
+<p>
+An example:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #006400;">;; </span><span style="color: #006400;">Example - using CCC's format with rich assertions</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">In this example, the assertion constrains the function to suck a map,</span>
+<span style="color: #006400;">;; </span><span style="color: #006400;">with keywords keys and numeric values, and a keyword.</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">The returned value is unconstrained</span>
+
+<span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">def</span> <span style="color: #0000ff;">map-keyword-keys-numeric-vals-fn2</span> <span style="color: #8c8c8c;">(</span>apply-contract-aspects (fn [m k] <span style="color: #8c8c8c;">(</span>k m<span style="color: #8c8c8c;">))</span> [[m k] [<span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">map?</span> m<span style="color: #8c8c8c;">)</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> keyword <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">keys</span> m<span style="color: #8c8c8c;">))</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> number? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">vals</span> m<span style="color: #8c8c8c;">))</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">keyword?</span> k<span style="color: #8c8c8c;">)</span>]]<span style="color: #8c8c8c;">))</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">This will work and return nil as the return value is not constrained</span>
+
+<span style="color: #8c8c8c;">(</span>will-work map-keyword-keys-numeric-vals-fn2 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #008b8b;">:d</span><span style="color: #8c8c8c;">)</span>
+
+<span style="color: #8c8c8c;">(</span>will-fail map-keyword-keys-numeric-vals-fn2 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #8b2252;">"d"</span><span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-fail map-keyword-keys-numeric-vals-fn2 {<span style="color: #008b8b;">:a</span> <span style="color: #008b8b;">:x</span> <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #008b8b;">:a</span><span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-fail map-keyword-keys-numeric-vals-fn2 {<span style="color: #8b2252;">"x"</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #008b8b;">:d</span><span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-6-4" class="outline-3">
+<h3 id="sec-6-4"><span class="section-number-3">6.4</span> Example - using CCC's format in a suck definition</h3>
+<div class="outline-text-3" id="text-6-4">
+<p>
+You can also use a <b>CCC</b> form in a suck definition. Likely confusing,
+ notably because you have to be quite careful as to what assertions are
+ applied to which arguments, but it works. The <b>CCC</b> form works as if
+ it is a mnemonic (see later) in the same position.
+</p>
+
+<p>
+Note in the example below the <span class="underline">map?</span> assertion for the result in the
+<b>CCC</b> form has been discarded because it is not a <span class="underline">suck</span> assertion;
+the <span class="underline">spit</span> <span class="underline">:number</span> assertion is applied to the result.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #006400;">;; </span><span style="color: #006400;">Example - using CCC's format in a suck definition</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">Not the clearest way of specifying the contract</span>
+
+<span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">def</span> <span style="color: #0000ff;">using-ccc-form-in-the-suck-definition-fn1</span> <span style="color: #8c8c8c;">(</span>apply-contract-aspects (fn [m k s] <span style="color: #8c8c8c;">(</span>k m<span style="color: #8c8c8c;">))</span> {<span style="color: #008b8b;">:suck</span> [<span style="color: #008b8b;">:map</span> [[k s] [<span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">keyword?</span> k<span style="color: #8c8c8c;">)</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">string?</span> s<span style="color: #8c8c8c;">)</span> =&gt; map?]]] <span style="color: #008b8b;">:spit</span> <span style="color: #008b8b;">:number</span>} <span style="color: #8c8c8c;">))</span>
+
+<span style="color: #8c8c8c;">(</span>will-work using-ccc-form-in-the-suck-definition-fn1 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #008b8b;">:a</span> <span style="color: #8b2252;">"s2"</span><span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-fail using-ccc-form-in-the-suck-definition-fn1 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #8b2252;">"d"</span> <span style="color: #8b2252;">"s2"</span><span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-fail using-ccc-form-in-the-suck-definition-fn1 {<span style="color: #008b8b;">:a</span> <span style="color: #008b8b;">:x</span> <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #008b8b;">:a</span> 1 <span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-fail using-ccc-form-in-the-suck-definition-fn1 {<span style="color: #8b2252;">"x"</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #008b8b;">:d</span> <span style="color: #8b2252;">"s2"</span><span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-7" class="outline-2">
+<h2 id="sec-7"><span class="section-number-2">7</span> Using Mnemonics</h2>
+<div class="outline-text-2" id="text-7">
+<p>
+At their simplest, <b>mnemonic</b> are (Clojure) keyword "short-hands" for a contract assertion(s).
+</p>
+</div>
+
+<div id="outline-container-sec-7-1" class="outline-3">
+<h3 id="sec-7-1"><span class="section-number-3">7.1</span> Using Mnemonics for Built-in Predicates</h3>
+<div class="outline-text-3" id="text-7-1">
+<p>
+So far the assertions used have used Clojure's built-in predicates such as <span class="underline">map?</span>,
+<span class="underline">keyword?</span> and <span class="underline">vector?</span> but we could have used their keyword mnemonics
+<span class="underline">:map</span>, <span class="underline">:keyword</span> or <span class="underline">:vector</span>.  In fact any predicate of the form
+<span class="underline">name?</span> can be replaced by its keyword form <span class="underline">:name</span> (as long as the
+symbol can be <b>resolved</b>).
+</p>
+</div>
+
+<div id="outline-container-sec-7-1-1" class="outline-4">
+<h4 id="sec-7-1-1"><span class="section-number-4">7.1.1</span> Example - using a built-in mnemonic</h4>
+<div class="outline-text-4" id="text-7-1-1">
+<p>
+To repeat the example above using <span class="underline">map?</span> but with <span class="underline">:map</span>:
+</p>
+
+
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #006400;">;; </span><span style="color: #006400;">Example - using a built-in mnemonic</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">This is a contrived example to show the symmetry when using a buit-in mnemonic.</span>
+<span style="color: #006400;">;; </span><span style="color: #006400;">BTW The function hard-codes a map as it return value so will always satisfy the spit constraint.</span>
+
+<span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">def</span> <span style="color: #0000ff;">mnemonic-suck-and-spit-map-fn1</span> <span style="color: #8c8c8c;">(</span>apply-contract-aspects (fn [x] {<span style="color: #008b8b;">:x</span> 1 <span style="color: #008b8b;">:y</span> 2 <span style="color: #008b8b;">:z</span> 3}<span style="color: #8c8c8c;">)</span> <span style="color: #008b8b;">:map</span><span style="color: #8c8c8c;">))</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">This will work because the argument is a map and the (hard-coded) return value is a map</span>
+
+<span style="color: #8c8c8c;">(</span>will-work mnemonic-suck-and-spit-map-fn1 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3}<span style="color: #8c8c8c;">)</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">But this fail sicne the argument is not a map</span>
+
+<span style="color: #8c8c8c;">(</span>will-fail mnemonic-suck-and-spit-map-fn1 [1 2 3]<span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+
+<blockquote>
+<p>
+Note: using a built-in mnemonic as the full contract definition will apply the assertion(s) to <b>both</b> the input argument and also return value.
+</p>
+</blockquote>
+</div>
+</div>
+<div id="outline-container-sec-7-1-2" class="outline-4">
+<h4 id="sec-7-1-2"><span class="section-number-4">7.1.2</span> Example - applying built-in mnemonics to individual arguments and the result</h4>
+<div class="outline-text-4" id="text-7-1-2">
+<p>
+Repeating one of the examples above sucking a map and keyword and
+returning a vector, all that has changed is the
+assertions now  use keywords.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #006400;">;; </span><span style="color: #006400;">Example - applying built-in mnemonics to individual arguments and the result</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">In this example, built-in mnemonics are used to constrains the</span>
+<span style="color: #006400;">;; </span><span style="color: #006400;">function to suck a map and keyword and spit a vector.</span>
+
+<span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">def</span> <span style="color: #0000ff;">suck-map-keyword-spit-vector-fn1</span> <span style="color: #8c8c8c;">(</span>apply-contract-aspects (fn [m k] <span style="color: #8c8c8c;">(</span>k m<span style="color: #8c8c8c;">))</span> {<span style="color: #008b8b;">:suck</span> [<span style="color: #008b8b;">:map</span> <span style="color: #008b8b;">:keyword</span>] <span style="color: #008b8b;">:spit</span> <span style="color: #008b8b;">:vector</span>}<span style="color: #8c8c8c;">))</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">This will work as key :c contains a vector</span>
+
+<span style="color: #8c8c8c;">(</span>will-work suck-map-keyword-spit-vector-fn1 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> [1 2 3]} <span style="color: #008b8b;">:c</span><span style="color: #8c8c8c;">)</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">But these will fail their contract</span>
+
+<span style="color: #8c8c8c;">(</span>will-fail suck-map-keyword-spit-vector-fn1 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #008b8b;">:c</span><span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-fail suck-map-keyword-spit-vector-fn1 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #008b8b;">:d</span><span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+
+<blockquote>
+<p>
+Note: built-in mnemonics in the map form of a contract
+definition apply the assertion <b>only</b> to the mnemonic's corresponding
+argument.
+</p>
+</blockquote>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-7-2" class="outline-3">
+<h3 id="sec-7-2"><span class="section-number-3">7.2</span> Changing a Built-in Mnemonic Contract Definition</h3>
+<div class="outline-text-3" id="text-7-2">
+<p>
+Replacing a built-in predicate with its keyword mnemonic is not a big win,
+just saving a few characters in the assertion definition. 
+</p>
+
+<p>
+The real power of
+mnemonics comes from the opportunity to change the definition of an
+existing mnemonic (or add custom ones - see later).
+</p>
+
+<p>
+The  <span class="underline">configure-contracts-store</span> macro manages mnemonics definitions.
+</p>
+</div>
+
+<div id="outline-container-sec-7-2-1" class="outline-4">
+<h4 id="sec-7-2-1"><span class="section-number-4">7.2.1</span> Example - redefining the :map built-in mnemonic</h4>
+<div class="outline-text-4" id="text-7-2-1">
+<p>
+Say you wanted to re-define the built-in <span class="underline">:map</span> mnemonic to check  <b>always</b> that a map's keys are keywords:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #006400;">;; </span><span style="color: #006400;">Changing a Built-in Mnemonic Contract Definition</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">Change the built-in :map mnemonics to also check the keys are keywords</span>
+
+<span style="color: #8c8c8c;">(</span>configure-contracts-store aspect-mnemonic-definitions {<span style="color: #008b8b;">:map</span> {<span style="color: #008b8b;">:suck</span> [[map? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> keyword? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">keys</span> arg0<span style="color: #8c8c8c;">))</span>]]}}<span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+
+<p>
+Using the updated mnemonic is exactly the same as before:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #006400;">;; </span><span style="color: #006400;">Example - re-defining the :map built-in mnemonic</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">In this example, the :map built-in mnemonic has been changed to check the keys are keywords.</span>
+
+<span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">def</span> <span style="color: #0000ff;">suck-map-keyword-spit-vector-fn1</span> <span style="color: #8c8c8c;">(</span>apply-contract-aspects (fn [m k] <span style="color: #8c8c8c;">(</span>k m<span style="color: #8c8c8c;">))</span> {<span style="color: #008b8b;">:suck</span> [<span style="color: #008b8b;">:map</span> <span style="color: #008b8b;">:keyword</span>] <span style="color: #008b8b;">:spit</span> <span style="color: #008b8b;">:vector</span>}<span style="color: #8c8c8c;">))</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">This will work as key :c contains a vector</span>
+
+<span style="color: #8c8c8c;">(</span>will-work suck-map-keyword-spit-vector-fn1 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> [1 2 3]} <span style="color: #008b8b;">:c</span><span style="color: #8c8c8c;">)</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">But this will fail the contract as "x" is not a keyword.</span>
+
+<span style="color: #8c8c8c;">(</span>will-fail suck-map-keyword-spit-vector-fn1 {<span style="color: #8b2252;">"x"</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #008b8b;">:c</span><span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-7-3" class="outline-3">
+<h3 id="sec-7-3"><span class="section-number-3">7.3</span> Adding and Using Custom Mnemonics</h3>
+<div class="outline-text-3" id="text-7-3">
+<p>
+Just as you can update the definition of a built-in mnemonic, you can
+add / update your own <b>custom</b> mnemonics.
+</p>
+</div>
+
+<div id="outline-container-sec-7-3-1" class="outline-4">
+<h4 id="sec-7-3-1"><span class="section-number-4">7.3.1</span> Example - using a custom mnemonic</h4>
+<div class="outline-text-4" id="text-7-3-1">
+<p>
+Say you wanted to define a custom mnemonic that "packages" the assertions
+that a map's keys are keywords and all the values are numeric:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #006400;">;; </span><span style="color: #006400;">Example - add a new mnemonic to the contracts store</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">The new mnemonic - :map-keyword-keys-numeric-vals - constrains an</span>
+<span style="color: #006400;">;; </span><span style="color: #006400;">argument to be a map with keyword keys and numeric values.</span>
+
+<span style="color: #8c8c8c;">(</span>configure-contracts-store
+ aspect-mnemonic-definitions
+ {<span style="color: #008b8b;">:map-keyword-keys-numeric-vals</span> {<span style="color: #008b8b;">:suck</span> [[map? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> keyword? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">keys</span> arg0<span style="color: #8c8c8c;">))</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> number? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">vals</span> arg0<span style="color: #8c8c8c;">))</span>]]}}<span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+
+<p>
+To use the new mnemonic is straightforward.  Note the mnemonic appears
+as the first value in the <span class="underline">:suck</span> assertion vector, the other entry
+being <span class="underline">:keyword</span>.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #006400;">;; </span><span style="color: #006400;">Example - using a custom mnemonic</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">In this example, the assertion constrains the function to suck a map and keyword, spit a number.</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">The map must have keywords keys and numeric values.</span>
+
+<span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">def</span> <span style="color: #0000ff;">mnemonic-suck-map-keyword-spit-number-fn1</span> <span style="color: #8c8c8c;">(</span>apply-contract-aspects (fn [m k] <span style="color: #8c8c8c;">(</span>k m<span style="color: #8c8c8c;">))</span> {<span style="color: #008b8b;">:suck</span> [<span style="color: #008b8b;">:map-keyword-keys-numeric-vals</span> <span style="color: #008b8b;">:keyword</span>] <span style="color: #008b8b;">:spit</span> <span style="color: #008b8b;">:number</span>}<span style="color: #8c8c8c;">))</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">This will work</span>
+
+<span style="color: #8c8c8c;">(</span>will-work mnemonic-suck-map-keyword-spit-number-fn1 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #008b8b;">:a</span><span style="color: #8c8c8c;">)</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">But these will fail their contracts</span>
+
+<span style="color: #8c8c8c;">(</span>will-fail mnemonic-suck-map-keyword-spit-number-fn1 {<span style="color: #008b8b;">:a</span> <span style="color: #008b8b;">:x</span> <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #008b8b;">:a</span><span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-fail mnemonic-suck-map-keyword-spit-number-fn1 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #008b8b;">:d</span><span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-fail mnemonic-suck-map-keyword-spit-number-fn1 {<span style="color: #8b2252;">"x"</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #008b8b;">:c</span><span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-7-4" class="outline-3">
+<h3 id="sec-7-4"><span class="section-number-3">7.4</span> Using a Custom Mnemonic to package multiple arguments</h3>
+<div class="outline-text-3" id="text-7-4">
+<p>
+You can go a step farther from the previous example and add the assertion for the second
+argument to be a keyword into the mnemonic as well:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #006400;">;; </span><span style="color: #006400;">Using a Custom Mnemonic to package multiple arguments</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">The new mnemonic combines the assertions to ensure the first argument</span>
+<span style="color: #006400;">;; </span><span style="color: #006400;">is a map with keyword keys and numerics value and also the requirement</span>
+<span style="color: #006400;">;; </span><span style="color: #006400;">for the second argument to be a keyword.</span>
+
+<span style="color: #8c8c8c;">(</span>configure-contracts-store aspect-mnemonic-definitions {<span style="color: #008b8b;">:suck-map-keyword-keys-numeric-vals-and-keyword</span> {<span style="color: #008b8b;">:suck</span> [[map? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> keyword? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">keys</span> arg0<span style="color: #8c8c8c;">))</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> number? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">vals</span> arg0<span style="color: #8c8c8c;">))</span>] keyword?]}}<span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-7-4-1" class="outline-4">
+<h4 id="sec-7-4-1"><span class="section-number-4">7.4.1</span> Example - using a custom multiple argument suck mnemonic</h4>
+<div class="outline-text-4" id="text-7-4-1">
+<p>
+In this example a multiple argument mnemonic replaces the whole <span class="underline">:suck</span> definition.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #006400;">;; </span><span style="color: #006400;">Example - using a custom multiple argument suck mnemonic</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">In this example, the map assertion uses a mnemonic to ensure keywords keys and numeric values.</span>
+
+<span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">def</span> <span style="color: #0000ff;">mnemonic-suck-map-keyword-spit-number-fn2</span> <span style="color: #8c8c8c;">(</span>apply-contract-aspects (fn [m k] <span style="color: #8c8c8c;">(</span>k m<span style="color: #8c8c8c;">))</span> {<span style="color: #008b8b;">:suck</span> <span style="color: #008b8b;">:suck-map-keyword-keys-numeric-vals-and-keyword</span> <span style="color: #008b8b;">:spit</span> <span style="color: #008b8b;">:number</span>}<span style="color: #8c8c8c;">))</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">Using the same tests as above</span>
+
+<span style="color: #8c8c8c;">(</span>will-work mnemonic-suck-map-keyword-spit-number-fn2 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #008b8b;">:a</span><span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-fail mnemonic-suck-map-keyword-spit-number-fn2 {<span style="color: #008b8b;">:a</span> <span style="color: #008b8b;">:x</span> <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #008b8b;">:a</span><span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-fail mnemonic-suck-map-keyword-spit-number-fn2 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #008b8b;">:d</span><span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-fail mnemonic-suck-map-keyword-spit-number-fn2 {<span style="color: #8b2252;">"x"</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #008b8b;">:c</span><span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-7-5" class="outline-3">
+<h3 id="sec-7-5"><span class="section-number-3">7.5</span> Using a Custom Mnemonic to package the complete contract</h3>
+<div class="outline-text-3" id="text-7-5">
+<p>
+Its just a small step from the multi argument example to packaging
+the whole contract in a custom mnemonic:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #006400;">;; </span><span style="color: #006400;">Using a Custom Mnemonic to package the complete contract</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">The custom mnemonic combines the assertions to ensure the first</span>
+<span style="color: #006400;">;; </span><span style="color: #006400;">argument is a map with keyword keys and numerics value and also the</span>
+<span style="color: #006400;">;; </span><span style="color: #006400;">requirement for the second argument to be a keywork. It also includes</span>
+<span style="color: #006400;">;; </span><span style="color: #006400;">the requirement for the return value to be a number.</span>
+
+<span style="color: #8c8c8c;">(</span>configure-contracts-store
+ aspect-mnemonic-definitions
+ {<span style="color: #008b8b;">:contract-suck-map-keyword-keys-numeric-vals-and-keyword-spit-number</span> 
+  {<span style="color: #008b8b;">:suck</span> [[map? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> keyword? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">keys</span> arg0<span style="color: #8c8c8c;">))</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> number? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">vals</span> arg0<span style="color: #8c8c8c;">))</span>] keyword?] <span style="color: #008b8b;">:spit</span> <span style="color: #008b8b;">:number</span>}}<span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-7-5-1" class="outline-4">
+<h4 id="sec-7-5-1"><span class="section-number-4">7.5.1</span> Example - using a custom mnemonic to package the whole contract</h4>
+<div class="outline-text-4" id="text-7-5-1">
+<p>
+In this example the complete contract mnemonic replaces the whole
+contract map form.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #006400;">;; </span><span style="color: #006400;">Example - using a custom mnemonic to package the whole contract</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">In this example, the a mnemonic packages the complete assertion</span>
+
+<span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">def</span> <span style="color: #0000ff;">mnemonic-suck-map-keyword-spit-number-fn3</span> 
+  <span style="color: #8c8c8c;">(</span>apply-contract-aspects (fn [m k] <span style="color: #8c8c8c;">(</span>k m<span style="color: #8c8c8c;">))</span> <span style="color: #008b8b;">:contract-suck-map-keyword-keys-numeric-vals-and-keyword-spit-number</span><span style="color: #8c8c8c;">))</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">Exactly the same tests as above</span>
+
+<span style="color: #8c8c8c;">(</span>will-work mnemonic-suck-map-keyword-spit-number-fn3 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #008b8b;">:a</span><span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-fail mnemonic-suck-map-keyword-spit-number-fn3 {<span style="color: #008b8b;">:a</span> <span style="color: #008b8b;">:x</span> <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #008b8b;">:a</span><span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-fail mnemonic-suck-map-keyword-spit-number-fn3 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #008b8b;">:d</span><span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-fail mnemonic-suck-map-keyword-spit-number-fn3 {<span style="color: #8b2252;">"x"</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #008b8b;">:c</span><span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-7-6" class="outline-3">
+<h3 id="sec-7-6"><span class="section-number-3">7.6</span> Using Mnemonics in Custom Mnemonics</h3>
+<div class="outline-text-3" id="text-7-6">
+<p>
+You can use mnemonics in the <b>composition</b>  of other, richer mnemonics (although
+beware the infinite recursion gotcha mentioned below).
+</p>
+
+<p>
+For example, create a custom mnemonic - <span class="underline">:suck-map-special</span> - to constrain a map to have
+keyword keys and numeric values, and use that mnemonic in another
+mnemonic - <span class="underline">:suck-map-special-and-keyword</span> - to include the keyword as the second argument. And finally use the
+second mnemonic to specify the full contract for a two argument function sucking
+the constrained map and a
+keyword, and also spitting a number - <span class="underline">:contract-suck-map-special-and-keyword-spit-number</span>.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #006400;">;; </span><span style="color: #006400;">Using Mnemonics in Custom Mnemeonics</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">The first customer mnemonic constrains a map to have keyword keys and numeric values.</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">The second custome mnemonic speficiy the constrained map and a keyword as the second argument.</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">The third custom mnemonic uses the second mnemonic to build a</span>
+<span style="color: #006400;">;; </span><span style="color: #006400;">complete contract mnemonic for a two argument function sucking the</span>
+<span style="color: #006400;">;; </span><span style="color: #006400;">constrained map and a keyword, and spitting a number.</span>
+
+<span style="color: #8c8c8c;">(</span>configure-contracts-store
+ aspect-mnemonic-definitions
+ {<span style="color: #008b8b;">:suck-map-special</span> {<span style="color: #008b8b;">:suck</span> [[map? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> keyword? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">keys</span> arg0<span style="color: #8c8c8c;">))</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> number? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">vals</span> arg0<span style="color: #8c8c8c;">))</span>]]}
+  <span style="color: #008b8b;">:suck-map-special-and-keyword</span> {<span style="color: #008b8b;">:suck</span> [<span style="color: #008b8b;">:suck-map-special</span> <span style="color: #008b8b;">:keyword</span>]}
+  <span style="color: #008b8b;">:contract-suck-map-special-and-keyword-spit-number</span> {<span style="color: #008b8b;">:suck</span> <span style="color: #008b8b;">:suck-map-special-and-keyword</span> <span style="color: #008b8b;">:spit</span> <span style="color: #008b8b;">:number</span>}}<span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-7-6-1" class="outline-4">
+<h4 id="sec-7-6-1"><span class="section-number-4">7.6.1</span> Example - using a mnemonic containing mnemonics</h4>
+<div class="outline-text-4" id="text-7-6-1">
+<p>
+The example is exactly the same as the one above, but the use of "sub"
+mnemonics is transparent.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #006400;">;; </span><span style="color: #006400;">Example - using a mnemonic containing mnemonics</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">In this example, the three level mnemonic packages the complete assertion</span>
+
+<span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">def</span> <span style="color: #0000ff;">mnemonic-suck-map-special-keyword-spit-number-fn1</span> <span style="color: #8c8c8c;">(</span>apply-contract-aspects (fn [m k] <span style="color: #8c8c8c;">(</span>k m<span style="color: #8c8c8c;">))</span> <span style="color: #008b8b;">:contract-suck-map-special-and-keyword-spit-number</span><span style="color: #8c8c8c;">))</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">Exactly the same tests as above</span>
+
+<span style="color: #8c8c8c;">(</span>will-work mnemonic-suck-map-special-keyword-spit-number-fn1 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #008b8b;">:a</span><span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-fail mnemonic-suck-map-special-keyword-spit-number-fn1 {<span style="color: #008b8b;">:a</span> <span style="color: #008b8b;">:x</span> <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #008b8b;">:a</span><span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-fail mnemonic-suck-map-special-keyword-spit-number-fn1 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #008b8b;">:d</span><span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-fail mnemonic-suck-map-special-keyword-spit-number-fn1 {<span style="color: #8b2252;">"x"</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #008b8b;">:c</span><span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-7-7" class="outline-3">
+<h3 id="sec-7-7"><span class="section-number-3">7.7</span> Composing Mnemonics - resolving arguments</h3>
+<div class="outline-text-3" id="text-7-7">
+<p>
+In the examples above, mnemonics were always the first entry
+in the value of a suck or spit key - see the three level composed
+mnemonic immediately above.
+</p>
+
+<p>
+Most the time the assertion (e.g. <span class="underline">:map</span>) did <b>not</b> need to include (specify) the
+name (symbol)
+of the argument the assertion would be applied to; the name was
+deduced from the assertion's position in the value of the suck / spit key.
+</p>
+
+<p>
+The only time an explicit argument name  appeared was  <span class="underline">arg0</span>
+in the <span class="underline">every?</span> assertion clauses because the map was the first
+argument.  
+</p>
+
+<p>
+But what if the map was not the first argument?
+</p>
+
+<p>
+Lets recast the <span class="underline">:suck-map-special-and-keyword</span>
+mnemonic to expect the <span class="underline">:keyword</span> first and  the <span class="underline">:map-special</span> second <b>but continue to use</b>
+the <span class="underline">:suck-map-special</span> mnemonic even though the latter expects (and
+defines) the map
+to be <span class="underline">arg0</span>:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #8c8c8c;">(</span>configure-contracts-store
+ aspect-mnemonic-definitions
+ {<span style="color: #008b8b;">:suck-keyword-and-map-special</span> {<span style="color: #008b8b;">:suck</span> [<span style="color: #008b8b;">:keyword</span> <span style="color: #008b8b;">:suck-map-special</span>]}
+  <span style="color: #008b8b;">:contract-suck-keyword-and-map-special-spit-number</span> {<span style="color: #008b8b;">:suck</span> <span style="color: #008b8b;">:suck-keyword-and-map-special</span> <span style="color: #008b8b;">:spit</span> <span style="color: #008b8b;">:number</span>}}<span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+</div>
+
+<div id="outline-container-sec-7-7-1" class="outline-4">
+<h4 id="sec-7-7-1"><span class="section-number-4">7.7.1</span> Example - swapping the keyword and map in the three level composed mnemonics</h4>
+<div class="outline-text-4" id="text-7-7-1">
+<p>
+An example using the swapped argument third level mnemonic <span class="underline">:contract-suck-keyword-and-map-special-spit-number</span>
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #006400;">;; </span><span style="color: #006400;">Example - swapping the keyword and map in the three level composed mnemonics</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">In this example, the keyword and map are swapped in the three level mnemonic</span>
+
+<span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">def</span> <span style="color: #0000ff;">mnemonic-suck-keyword-map-special-spit-number-fn1</span> <span style="color: #8c8c8c;">(</span>apply-contract-aspects (fn [k m] <span style="color: #8c8c8c;">(</span>k m<span style="color: #8c8c8c;">))</span> <span style="color: #008b8b;">:contract-suck-keyword-and-map-special-spit-number</span> <span style="color: #8c8c8c;">))</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">The same tests as above but the arguments swapped</span>
+
+<span style="color: #8c8c8c;">(</span>will-work mnemonic-suck-keyword-map-special-spit-number-fn1 <span style="color: #008b8b;">:a</span> {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3}<span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-fail mnemonic-suck-keyword-map-special-spit-number-fn1 <span style="color: #008b8b;">:a</span> {<span style="color: #008b8b;">:a</span> <span style="color: #008b8b;">:x</span> <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3}<span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-fail mnemonic-suck-keyword-map-special-spit-number-fn1 <span style="color: #008b8b;">:d</span> {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3}<span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-fail mnemonic-suck-keyword-map-special-spit-number-fn1 <span style="color: #008b8b;">:c</span> {<span style="color: #8b2252;">"x"</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3}<span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+
+<p>
+The behaviour is  as expected but the generated contract look similar to
+this:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #006400;">;; </span><span style="color: #006400;">Example - swapping the keyword and map in the three level composed mnemonics</span>
+<span style="color: #8c8c8c;">(</span>clojure.core.contracts/contract ctx-aspect2879 <span style="color: #8b2252;">"\"ctx-aspect2879\""</span> [arg0 arg1] [<span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">keyword?</span> arg0<span style="color: #8c8c8c;">)</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">map?</span> arg1<span style="color: #8c8c8c;">)</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> keyword? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">keys</span> arg1<span style="color: #8c8c8c;">))</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> number? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">vals</span> arg1<span style="color: #8c8c8c;">))</span> =&gt; <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">number?</span> %<span style="color: #8c8c8c;">)</span>]<span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+
+<p>
+Some notes:
+</p>
+
+<ul class="org-ul">
+<li>The <span class="underline">arg0</span> in the canonical definition of the <span class="underline">:map-special</span> mnemonic has been automatically rewritten in the final contract to be <span class="underline">arg1</span> i.e. the second argument. <span class="underline">argo</span> refers to the <span class="underline">:keyword</span> (first) argument.
+</li>
+
+<li>More generally, explicitly specified arguments in a mnemonic are automatically <b>shifted right</b> to whatever position the mnemonic has in the assertion clause. This applies recursively for composed mnemonics.
+</li>
+
+<li>So when creating mnemonics, if you need to use explicit argument names (arg0, arg1, arg2, etc), name them relative to the mnemonic's argument order and they can be composed successfully.
+</li>
+</ul>
+</div>
+</div>
+<div id="outline-container-sec-7-7-2" class="outline-4">
+<h4 id="sec-7-7-2"><span class="section-number-4">7.7.2</span> Example - using absolute arguments in mnemonics</h4>
+<div class="outline-text-4" id="text-7-7-2">
+<p>
+Much (most?) of the time relative arguments names suffice.  But
+there may be times when using composed mnemonics when you need to
+specify (refer to) absolute argument names. 
+</p>
+
+<p>
+A rather contrived scenario: say you needed to define
+mnemonics with relative arguments but use an absolute argument inside the
+relative mnemonic. Concretely:  e.g. if the first argument is a map but
+the third (relative) argument must be a keyword that is a key in the
+map.  
+</p>
+
+<p>
+Note the <span class="underline">:keyword-in-first-argument-map</span> below uses <span class="underline">arg0</span> to refer
+to itself (i.e. the keyword) but <span class="underline">abs-arg0</span> to refer to  the first argument (i.e. the map).
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #8c8c8c;">(</span>configure-contracts-store
+ aspect-mnemonic-definitions
+ {<span style="color: #008b8b;">:keyword-in-first-argument-map</span> {<span style="color: #008b8b;">:suck</span> [[<span style="color: #008b8b;">:keyword</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">contains?</span> abs-arg0 arg0<span style="color: #8c8c8c;">)</span>]]}}<span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+
+<p>
+The example follows the familiar format:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #006400;">;; </span><span style="color: #006400;">Example - using absolute arguments in mnemonics</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">This function takes a map, string and keyword, and returns a number.</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">The map must have keyword keys and numberic values.</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">The keyword must exist in the map</span>
+
+<span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">def</span> <span style="color: #0000ff;">absolute-argument-mnemonic-fn1</span> <span style="color: #8c8c8c;">(</span>apply-contract-aspects (fn [m s k] <span style="color: #8c8c8c;">(</span>k m<span style="color: #8c8c8c;">))</span> {<span style="color: #008b8b;">:suck</span> [<span style="color: #008b8b;">:suck-map-special</span> <span style="color: #008b8b;">:string</span> <span style="color: #008b8b;">:keyword-in-first-argument-map</span>] <span style="color: #008b8b;">:spit</span> <span style="color: #008b8b;">:number</span>}<span style="color: #8c8c8c;">))</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">The same tests as above but the arguments swapped</span>
+
+<span style="color: #8c8c8c;">(</span>will-work absolute-argument-mnemonic-fn1 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #8b2252;">"s1"</span> <span style="color: #008b8b;">:a</span><span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-fail absolute-argument-mnemonic-fn1 {<span style="color: #008b8b;">:a</span> <span style="color: #008b8b;">:x</span> <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #8b2252;">"s1"</span> <span style="color: #008b8b;">:a</span><span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-fail absolute-argument-mnemonic-fn1 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #8b2252;">"s1"</span> <span style="color: #008b8b;">:d</span><span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>will-fail absolute-argument-mnemonic-fn1 {<span style="color: #8b2252;">"x"</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> 3} <span style="color: #8b2252;">"s1"</span> <span style="color: #008b8b;">:c</span><span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+
+<p>
+For reference, the contract looks like the below, the <span class="underline">abs-arg0</span> has
+been rewritten to <span class="underline">arg0</span> while the <span class="underline">arg0</span> in the
+<span class="underline">:keyword-in-first-argument-map</span> mnemonic has been rewritten to <span class="underline">arg2</span>.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #8c8c8c;">(</span>clojure.core.contracts/contract ctx-aspect2879 <span style="color: #8b2252;">"\"ctx-aspect2879\""</span> [arg0 arg1 arg2] [<span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">map?</span> arg0<span style="color: #8c8c8c;">)</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> keyword? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">keys</span> arg0<span style="color: #8c8c8c;">))</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> number? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">vals</span> arg0<span style="color: #8c8c8c;">))</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">string?</span> arg1<span style="color: #8c8c8c;">)</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">keyword?</span> arg2<span style="color: #8c8c8c;">)</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">contains?</span> arg0 arg2<span style="color: #8c8c8c;">)</span> =&gt; <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">number?</span> %<span style="color: #8c8c8c;">)</span>]<span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-8" class="outline-2">
+<h2 id="sec-8"><span class="section-number-2">8</span> Beware mnemonic gotchas</h2>
+<div class="outline-text-2" id="text-8">
+<p>
+The code tries to be as aggressive as possible to catch
+inconsistencies and ensure your get what
+you want. But there are some things to be aware of.
+</p>
+</div>
+
+<div id="outline-container-sec-8-0-0-1" class="outline-5">
+<h5 id="sec-8-0-0-1"><span class="section-number-5">8.0.0.1</span> Beware mnemonic gotchas - infinite recursion</h5>
+<div class="outline-text-5" id="text-8-0-0-1">
+<p>
+Because mnemonics can use other mnemonic in their definition there is the
+ability to create an infinite loop if a "downstream" mnemonic refers to
+an "upstream" one.
+</p>
+
+<p>
+<span class="underline">Its possible to "remember" used mnemonics during evaluation
+but not done so yet - on the list of improvments.</span>
+</p>
+</div>
+</div>
+<div id="outline-container-sec-8-0-0-2" class="outline-5">
+<h5 id="sec-8-0-0-2"><span class="section-number-5">8.0.0.2</span> Beware mnemonic gotchas - incompatible argument assertions</h5>
+<div class="outline-text-5" id="text-8-0-0-2">
+<p>
+If a custom mnemonic's argument assertions conflict with an explicit predicate,
+built-in mnemonic (e.g. :map) or another custom mnemonic, the contract
+will include more than one, but potentially incompatible,
+assertions for the same argument.  Which may fail miserably.
+</p>
+
+<p>
+Note though that duplicate assertions for the same argument will be <b>distinct</b>-ified and cause no issue. 
+</p>
+</div>
+</div>
+<div id="outline-container-sec-8-0-0-3" class="outline-5">
+<h5 id="sec-8-0-0-3"><span class="section-number-5">8.0.0.3</span> Beware mnemonic gotchas - unexpected arguments</h5>
+<div class="outline-text-5" id="text-8-0-0-3">
+<p>
+If a custom mnemonic with two arguments is applied to a function expecting
+e.g. only one argument, an error will occur at run time.
+</p>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-9" class="outline-2">
+<h2 id="sec-9"><span class="section-number-2">9</span> Contracts with Multiple Arities</h2>
+<div class="outline-text-2" id="text-9">
+<p>
+<b>CCC</b> supports contracts for functions with multiple arities.
+</p>
+
+<p>
+<b>CHUGAR</b> supports multiple arities, just put them
+all in a vector on the call to e.g. <span class="underline">apply-contract-aspects</span>.
+</p>
+
+<p>
+<b>CHUGAR</b> raises an error if it identifies  contracts with the same
+arity for the same function in the same call to the macro (e.g. <span class="underline">apply-contract-aspects</span>).
+</p>
+</div>
+
+<div id="outline-container-sec-9-1" class="outline-3">
+<h3 id="sec-9-1"><span class="section-number-3">9.1</span> Example - two arities (map =&gt; number) and (map,keyword =&gt; vector)</h3>
+<div class="outline-text-3" id="text-9-1">
+<p>
+This example of a multiple arities contract defines one arity for a single argument
+function that suck a map and returns a vector; and a second arity for
+a two argument function that sucks a map and keyword and spits a
+vector.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #006400;">;; </span><span style="color: #006400;">Example - two arities (map =&gt; number) and (map,keyword =&gt; number)</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">This is the target function with two arities</span>
+
+<span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">defn</span> <span style="color: #0000ff;">two-arity-fn1</span>
+  <span style="color: #8c8c8c;">(</span>[m] <span style="color: #8c8c8c;">(</span><span style="color: #008b8b;">:a</span> m<span style="color: #8c8c8c;">))</span>
+  <span style="color: #8c8c8c;">(</span>[m k] <span style="color: #8c8c8c;">(</span>k m<span style="color: #8c8c8c;">)))</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">The constrained function</span>
+
+<span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">def</span> <span style="color: #0000ff;">constrained-two-arity-fn1</span> <span style="color: #8c8c8c;">(</span>apply-contract-aspects two-arity-fn1 [{<span style="color: #008b8b;">:suck</span> <span style="color: #008b8b;">:map</span> <span style="color: #008b8b;">:spit</span> <span style="color: #008b8b;">:number</span>} {<span style="color: #008b8b;">:suck</span> [<span style="color: #008b8b;">:map</span> <span style="color: #008b8b;">:keyword</span>] <span style="color: #008b8b;">:spit</span> <span style="color: #008b8b;">:vector</span>}]<span style="color: #8c8c8c;">))</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">First Arity Tests</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">This will works as value of key :a is a number</span>
+
+<span style="color: #8c8c8c;">(</span>will-work constrained-two-arity-fn1 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> [1 2 3]}<span style="color: #8c8c8c;">)</span>
+
+<span style="color: #006400;">; </span><span style="color: #006400;">This will fail as value of key :a is not a number</span>
+
+<span style="color: #8c8c8c;">(</span>will-fail constrained-two-arity-fn1 {<span style="color: #008b8b;">:a</span> <span style="color: #8b2252;">"x"</span>}<span style="color: #8c8c8c;">)</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">Second Arity Tests</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">This will work as value of key :c is a vector</span>
+
+<span style="color: #8c8c8c;">(</span>will-work constrained-two-arity-fn1 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> [1 2 3]} <span style="color: #008b8b;">:c</span><span style="color: #8c8c8c;">)</span>
+
+<span style="color: #006400;">; </span><span style="color: #006400;">This will fail as value of key :d is not a vector (its nil)</span>
+
+<span style="color: #8c8c8c;">(</span>will-fail constrained-two-arity-fn1 {<span style="color: #008b8b;">:a</span> <span style="color: #8b2252;">"x"</span>} <span style="color: #008b8b;">:d</span><span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-9-2" class="outline-3">
+<h3 id="sec-9-2"><span class="section-number-3">9.2</span> Example - multiple arities using mixed CCC form and map form</h3>
+<div class="outline-text-3" id="text-9-2">
+<p>
+The definition of the contract for each arity can be either CCC form
+or map form; they can be mixed as well.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #006400;">;; </span><span style="color: #006400;">Example - multiple arities using mixed CCC form and map form </span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">The same multiple arity example as above but using a mixed contract definition with CCC form and map form.</span>
+
+<span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">def</span> <span style="color: #0000ff;">constrained-two-arity-fn1</span> <span style="color: #8c8c8c;">(</span>apply-contract-aspects two-arity-fn1 [[[m] [map? =&gt; number?]]  {<span style="color: #008b8b;">:suck</span> [<span style="color: #008b8b;">:map</span> <span style="color: #008b8b;">:keyword</span>] <span style="color: #008b8b;">:spit</span> <span style="color: #008b8b;">:vector</span>}]<span style="color: #8c8c8c;">))</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">First Arity Tests</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">This will works as value of key :a is a number</span>
+
+<span style="color: #8c8c8c;">(</span>will-work constrained-two-arity-fn1 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> [1 2 3]}<span style="color: #8c8c8c;">)</span>
+
+<span style="color: #006400;">; </span><span style="color: #006400;">This will fail as value of key :a is not a number</span>
+
+<span style="color: #8c8c8c;">(</span>will-fail constrained-two-arity-fn1 {<span style="color: #008b8b;">:a</span> <span style="color: #8b2252;">"x"</span>}<span style="color: #8c8c8c;">)</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">Second Arity Tests</span>
+
+<span style="color: #006400;">;; </span><span style="color: #006400;">This will work as value of key :c is a vector</span>
+
+<span style="color: #8c8c8c;">(</span>will-work constrained-two-arity-fn1 {<span style="color: #008b8b;">:a</span> 1 <span style="color: #008b8b;">:b</span> 2 <span style="color: #008b8b;">:c</span> [1 2 3]} <span style="color: #008b8b;">:c</span><span style="color: #8c8c8c;">)</span>
+
+<span style="color: #006400;">; </span><span style="color: #006400;">This will fail as value of key :d is not a vector (its nil)</span>
+
+<span style="color: #8c8c8c;">(</span>will-fail constrained-two-arity-fn1 {<span style="color: #008b8b;">:a</span> <span style="color: #8b2252;">"x"</span>} <span style="color: #008b8b;">:d</span><span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+</div>
+</div>
+</div>
+
+<div id="outline-container-sec-10" class="outline-2">
+<h2 id="sec-10"><span class="section-number-2">10</span> Final Words</h2>
+<div class="outline-text-2" id="text-10">
+<p>
+<b>CHUGAR's</b> genesis was as part of a larger project (other parts to be published soon). 
+</p>
+
+<p>
+Writing the project has taught me a lot about 
+[Clojure][ClojureHome] (notably macros and protocols) and its
+ecosystem (testing, profiling, Clojars and suchlike)  but I still have lots to learn.
+</p>
+
+<p>
+I'm sure more experienced Clojurians would have some head-scratching moments if they
+looked at the code.  As I tweeted recently, I think the biggest challenge
+to learning a new language is to design idiomatically and well in it.
+All advice on that subject gratefully received and acknowledged.
+</p>
+
+<p>
+The whole point of <b>CHUGAR</b> was/is to make using the rich features of
+<b>CCC</b> as easy  as possible.  I hope it (begins to) succeed on that
+criterion and believe  <span class="underline">mnemonics</span> offers an original contribution
+and productivity aid for defining, re-using and composing contract aspects.
+</p>
+
+<p>
+I already have another article  in the works (part of the same project)
+on the practical and concrete use of <b>CHUGAR</b> to apply aspect contracts to the
+values of map keys. Coming soon!
+</p>
+</div>
+</div>
+<div id="outline-container-sec-11" class="outline-2">
+<h2 id="sec-11"><span class="section-number-2">11</span> Final Final Words</h2>
+<div class="outline-text-2" id="text-11">
+<p>
+The overall project is the first "serious" (as opposed to dabbling)
+[Clojure][ClojureHome] code I've written.  And the first serious
+code in a functional language. 
+</p>
+
+<blockquote>
+<p>
+In all my time writing software, I
+can't ever remember learning a new language that just gets out of the
+way when I'm rattling along, but gets in the way when I'm stuck and
+need some help overcoming an implementation or design issue, offering
+a (new to me) feature to use, or an approach to apply, to elide the
+obstacle.  Clojure, as many acknowledge, rocks!
+</p>
+</blockquote>
+
+
+<pre class="example">
+[ClojureHome]: http:///clojure.org
+[JavaHome]: http://www.java.com
+[LeiningenHome]: http://leiningen.org/
+[LeiningenGithub]: https://github.com/technomancy/leiningen
+[MavenHome]: http://maven.apache.org/
+[ClojarsHome]: http://clojars.org
+[ClojarsClojureContractsSUgar]: https://clojars.org/name.rumford/clojure-contracts-sugar
+[ClojureCoreContractsGithub]: https://github.com/clojure/core.contracts
+[ClojureContractsSugarGithub]: https://github.com/ianrumford/clojure-contracts-sugar
+[ClojureCarpGithub]: https://github.com/ianrumford/clojure-carp
+[RumfordBlogClojureCoreContractsFirstTake]: http://ianrumford.github.io/blog/2012/11/17/first-take-on-contracts-in-clojure/
+[FogusHome]: http://blog.fogus.me
+[FogusBlogClojurePreandPost]: http://blog.fogus.me/2009/12/21/clojures-pre-and-post/
+[Eiffel Design by Contract]: http://en.wikipedia.org/wiki/Eiffel_(programming_language)#Design_by_Contract
+[DesignByContractWikipedia]: http://en.wikipedia.org/wiki/Design_by_contract
+[CACMOct2001]:  http://dl.acm.org/citation.cfm?id=383845
+[CACMArticleAOPIntro]: http://dl.acm.org/citation.cfm?id=383845.383853&amp;coll=portal&amp;dl=ACM
+[AOPWikipedia]: http://en.wikipedia.org/wiki/Aspect-oriented_programming
+[LaddadBookAspectJinAction]: http://www.manning.com/laddad/
+[LaddadTwitter]: https://twitter.com/ramnivas
+[KiczalesHome]: http://people.cs.ubc.ca/~gregor/
+[EmerickHome]: http://cemerick.com/
+[GrandHome]: http://clj-me.cgrand.net/
+[CarperHome]: http://briancarper.net/
+[ClojureProgrammingBook]: http://www.clojurebook.com/
+[emacshome]: http://www.gnu.org/software/emacs/
+[orgmodehome]: http://orgmode.org/
+[orgmodemanualextractsourcecode]: http://orgmode.org/org.html#Extracting-source-code
+</pre>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="author">Author: Ian Rumford</p>
+<p class="date">Created: 2014-02-19 Wed 13:33</p>
+<p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode 8.2.5c)</p>
+<p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>

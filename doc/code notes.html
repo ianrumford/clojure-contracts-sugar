@@ -1,0 +1,401 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>clojure-contracts-sugar code notes</title>
+<!-- 2014-02-19 Wed 13:34 -->
+<meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta  name="generator" content="Org-mode" />
+<meta  name="author" content="Ian Rumford" />
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  .title  { text-align: center; }
+  .todo   { font-family: monospace; color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #eee; font-family: monospace;
+            padding: 2px; font-size: 80%; font-weight: normal; }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  { margin-left: auto; margin-right: 0px;  text-align: right; }
+  .left   { margin-left: 0px;  margin-right: auto; text-align: left; }
+  .center { margin-left: auto; margin-right: auto; text-align: center; }
+  .underline { text-decoration: underline; }
+  #postamble p, #preamble p { font-size: 90%; margin: .2em; }
+  p.verse { margin-left: 3%; }
+  pre {
+    border: 1px solid #ccc;
+    box-shadow: 3px 3px 3px #eee;
+    padding: 8pt;
+    font-family: monospace;
+    overflow: auto;
+    margin: 1.2em;
+  }
+  pre.src {
+    position: relative;
+    overflow: visible;
+    padding-top: 1.2em;
+  }
+  pre.src:before {
+    display: none;
+    position: absolute;
+    background-color: white;
+    top: -10px;
+    right: 10px;
+    padding: 3px;
+    border: 1px solid black;
+  }
+  pre.src:hover:before { display: inline;}
+  pre.src-sh:before    { content: 'sh'; }
+  pre.src-bash:before  { content: 'sh'; }
+  pre.src-emacs-lisp:before { content: 'Emacs Lisp'; }
+  pre.src-R:before     { content: 'R'; }
+  pre.src-perl:before  { content: 'Perl'; }
+  pre.src-java:before  { content: 'Java'; }
+  pre.src-sql:before   { content: 'SQL'; }
+
+  table { border-collapse:collapse; }
+  caption.t-above { caption-side: top; }
+  caption.t-bottom { caption-side: bottom; }
+  td, th { vertical-align:top;  }
+  th.right  { text-align: center;  }
+  th.left   { text-align: center;   }
+  th.center { text-align: center; }
+  td.right  { text-align: right;  }
+  td.left   { text-align: left;   }
+  td.center { text-align: center; }
+  dt { font-weight: bold; }
+  .footpara:nth-child(2) { display: inline; }
+  .footpara { display: block; }
+  .footdef  { margin-bottom: 1em; }
+  .figure { padding: 1em; }
+  .figure p { text-align: center; }
+  .inlinetask {
+    padding: 10px;
+    border: 2px solid gray;
+    margin: 10px;
+    background: #ffffcc;
+  }
+  #org-div-home-and-up
+   { text-align: right; font-size: 70%; white-space: nowrap; }
+  textarea { overflow-x: auto; }
+  .linenr { font-size: smaller }
+  .code-highlighted { background-color: #ffff00; }
+  .org-info-js_info-navigation { border-style: none; }
+  #org-info-js_console-label
+    { font-size: 10px; font-weight: bold; white-space: nowrap; }
+  .org-info-js_search-highlight
+    { background-color: #ffff00; color: #000000; font-weight: bold; }
+  /*]]>*/-->
+</style>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+</head>
+<body>
+<div id="content">
+<h1 class="title">clojure-contracts-sugar code notes</h1>
+<blockquote>
+<p>
+TL;DR: clojure-contracts-sugar - some implementations notes
+</p>
+</blockquote>
+
+<div id="outline-container-sec-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> The Stores</h2>
+<div class="outline-text-2" id="text-1">
+</div><div id="outline-container-sec-1-1" class="outline-3">
+<h3 id="sec-1-1"><span class="section-number-3">1.1</span> Contracts Store</h3>
+<div class="outline-text-3" id="text-1-1">
+<p>
+Contract definitions are held  in the Contracts Store.
+The store is a an clojure.core.memoize cache.
+</p>
+</div>
+</div>
+<div id="outline-container-sec-1-2" class="outline-3">
+<h3 id="sec-1-2"><span class="section-number-3">1.2</span> Aspects Store</h3>
+<div class="outline-text-3" id="text-1-2">
+<p>
+Aspect Contracts definitions are held in the Aspects Store. The Aspect
+Store is also a clojure.core.memoize cache and the Aspects Store is
+accessed via the Contracts Store
+</p>
+</div>
+</div>
+<div id="outline-container-sec-1-3" class="outline-3">
+<h3 id="sec-1-3"><span class="section-number-3">1.3</span> Constraints Stores</h3>
+<div class="outline-text-3" id="text-1-3">
+<p>
+Aspect definition are "compiled" into constraints.  Constraints are
+also memoized in the Constraints Store, which is held in the Contracts Store.
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> Aspect Contracts</h2>
+<div class="outline-text-2" id="text-2">
+<p>
+Aspect Contracts are applied to existing functions to either update the
+original function (update-contract-aspects) or create a new constrained
+function (apply-contract-aspects).
+</p>
+
+<p>
+For example:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">defn</span> <span style="color: #0000ff;">base-fn1</span> [m] <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">println</span> <span style="color: #8b2252;">"expecting a map"</span><span style="color: #8c8c8c;">)</span> m<span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">def</span> <span style="color: #0000ff;">constrained-fn-suck-and-spit-a-map</span> <span style="color: #8c8c8c;">(</span>clojure-contracts-sugar/apply-contract-aspects base-fn1 <span style="color: #008b8b;">:map</span><span style="color: #8c8c8c;">))</span>
+</pre>
+</div>
+
+<p>
+will created a new fn (_constrained-fn-suck-and-spit-a-map_) using
+<span class="underline">base-fn</span> but constrained to suck and spit a map.
+</p>
+
+<p>
+The following will "update" an existing function with an aspect contract applied
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure"><span style="color: #8c8c8c;">(</span><span style="color: #a020f0;">defn</span> <span style="color: #0000ff;">base-fn2</span> [m] <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">println</span> <span style="color: #8b2252;">"expecting a vector"</span><span style="color: #8c8c8c;">)</span> m<span style="color: #8c8c8c;">)</span>
+<span style="color: #8c8c8c;">(</span>clojure-contracts-sugar/update-contract-aspects base-fn2 <span style="color: #008b8b;">:vector</span><span style="color: #8c8c8c;">)</span>
+</pre>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> Aspect Contract Code Artefacts</h2>
+<div class="outline-text-2" id="text-3">
+</div><div id="outline-container-sec-3-1" class="outline-3">
+<h3 id="sec-3-1"><span class="section-number-3">3.1</span> Aspect Definition</h3>
+<div class="outline-text-3" id="text-3-1">
+<p>
+A normalised aspect definition is a vector of entries
+where each entry represents a contract for one <b>arity</b>
+for the <b>same</b> aspect.
+</p>
+
+<p>
+Each entry can be either as Aspect Form or an Aspect Constraint
+</p>
+</div>
+</div>
+<div id="outline-container-sec-3-2" class="outline-3">
+<h3 id="sec-3-2"><span class="section-number-3">3.2</span> Aspect Form</h3>
+<div class="outline-text-3" id="text-3-2">
+<p>
+Aspect Forms can be one of the following:
+</p>
+</div>
+
+<div id="outline-container-sec-3-2-1" class="outline-4">
+<h4 id="sec-3-2-1"><span class="section-number-4">3.2.1</span> Aspect Form - vector</h4>
+<div class="outline-text-4" id="text-3-2-1">
+<p>
+The first is the <span class="underline">clojure.core.contract</span> vector form e.g.
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure">'[[v] [map? =&gt; vector?]]
+</pre>
+</div>
+
+<p>
+This is the "canonical" assertion format but the vector form is
+converted into the map form  and then
+converted to a constraint.
+</p>
+</div>
+</div>
+<div id="outline-container-sec-3-2-2" class="outline-4">
+<h4 id="sec-3-2-2"><span class="section-number-4">3.2.2</span> Aspect Form - keyword</h4>
+<div class="outline-text-4" id="text-3-2-2">
+<p>
+Next is a keyword mnemonic.  The mnemonic is looked up in the
+Aspect Store to find its "real" definition - one of the other forms.
+</p>
+
+<p>
+Note built-in mnemonics (e.g. <span class="underline">:map</span>) do not have entries in the
+Aspect Store unless they have been updated.
+</p>
+</div>
+</div>
+<div id="outline-container-sec-3-2-3" class="outline-4">
+<h4 id="sec-3-2-3"><span class="section-number-4">3.2.3</span> Aspect Form - map</h4>
+<div class="outline-text-4" id="text-3-2-3">
+<p>
+The the map form has keys <span class="underline">:suck</span> and / or  <span class="underline">:spit</span> e.g 
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure">{<span style="color: #008b8b;">:suck</span>  [map? keyword?] <span style="color: #008b8b;">:spit</span> vector?}
+</pre>
+</div>
+
+<p>
+The map form is the most useful when multiple forms have to be
+"composed" into a single contract.
+</p>
+
+<p>
+The values of the <span class="underline">:suck</span> and <span class="underline">:spit</span> keys are themselves <b>positional</b>
+lists of <span class="underline">Aspect Definitions</span>,
+one for each argument. The definitions are reduced, via forms, into
+the correct constraint.
+</p>
+
+<p>
+For example
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure">[{<span style="color: #008b8b;">:suck</span> [<span style="color: #008b8b;">:map</span> <span style="color: #008b8b;">:string</span>] <span style="color: #008b8b;">:spit</span> <span style="color: #008b8b;">:vector</span>}]
+</pre>
+</div>
+
+<p>
+will compose to a contract consuming two arguments, a map and
+string, and returning a vector:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure">[[arg0 arg1] [<span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">map?</span> arg0<span style="color: #8c8c8c;">)</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">string?</span> arg1<span style="color: #8c8c8c;">)</span> =&gt; <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">vector?</span> %<span style="color: #8c8c8c;">)</span>]]
+</pre>
+</div>
+
+<p>
+If you need to apply a multiple assertions to the same argument,
+provide a list.
+</p>
+
+<p>
+For example, to ensure all the keys of the map are keywords:
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure">[{<span style="color: #008b8b;">:suck</span> [[<span style="color: #008b8b;">:map</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> keyword? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">keys</span> arg0<span style="color: #8c8c8c;">))</span>] <span style="color: #008b8b;">:string</span>]] <span style="color: #008b8b;">:spit</span> <span style="color: #008b8b;">:vector</span>}]
+</pre>
+</div>
+
+<p>
+will compose to
+</p>
+
+<div class="org-src-container">
+
+<pre class="src src-clojure">[[arg0 arg1] [<span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">map?</span> arg0<span style="color: #8c8c8c;">)</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">every?</span> keyword? <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">keys</span> arg0<span style="color: #8c8c8c;">))</span> <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">string?</span> arg1<span style="color: #8c8c8c;">)</span> =&gt; <span style="color: #8c8c8c;">(</span><span style="color: #483d8b;">vector?</span> %<span style="color: #8c8c8c;">)</span>]]
+</pre>
+</div>
+
+<p>
+Note the <span class="underline">every?</span> form explicitly specifies the <span class="underline">arg0</span> argument
+</p>
+</div>
+</div>
+</div>
+<div id="outline-container-sec-3-3" class="outline-3">
+<h3 id="sec-3-3"><span class="section-number-3">3.3</span> Aspect Constraints</h3>
+<div class="outline-text-3" id="text-3-3">
+<p>
+An Aspect Form is transformed into an <b>Aspect Constraint</b> (one-to-one)
+The aspect constraint can be used to generate the contract form
+for use with clojure.core.contracts's <span class="underline">contract</span> macro.
+</p>
+
+<p>
+An Aspect Constraint can be thought of as the <b>compiled</b> Aspect
+Form.
+</p>
+
+<p>
+As Aspect Constraint is implemented as a protocol on a defrecord
+(there is only one type today).
+</p>
+</div>
+
+<div id="outline-container-sec-3-3-1" class="outline-4">
+<h4 id="sec-3-3-1"><span class="section-number-4">3.3.1</span> Aspect Arguments</h4>
+<div class="outline-text-4" id="text-3-3-1">
+<p>
+Aspect Constraints contains one or more Aspect Arguments (again a
+protocol) of type types (defrecords) suck and spit.
+</p>
+</div>
+
+<div id="outline-container-sec-3-3-1-1" class="outline-5">
+<h5 id="sec-3-3-1-1"><span class="section-number-5">3.3.1.1</span> Aspect Assertions</h5>
+<div class="outline-text-5" id="text-3-3-1-1">
+<p>
+Each Aspect Argument contains one or more Aspect Assertions (e.g.
+<span class="underline">map?</span>).  Again a protocol + defrecord.
+</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="author">Author: Ian Rumford</p>
+<p class="date">Created: 2014-02-19 Wed 13:34</p>
+<p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode 8.2.5c)</p>
+<p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
+</div>
+</body>
+</html>
