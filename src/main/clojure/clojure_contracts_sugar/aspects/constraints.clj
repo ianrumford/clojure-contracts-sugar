@@ -1,25 +1,10 @@
 (ns clojure-contracts-sugar.aspects.constraints
-  (:require [clojure-contracts-sugar.manifests :as manifests
-             :refer (
-                     manifest-aspect-argument-type-spit
-                     manifest-aspect-argument-type-suck
-                     manifest-aspect-argument-types
-
-                     manifest-aspect-assertion-types)]
-            
-            [clojure-contracts-sugar.utils.utils :as utils
-             :refer (to-vector
-                     to-collection
-                     walk-forms
-                     make-fin-suck-arg-symbol-from-index
-                     make-fin-spit-arg-symbol-from-index)]
-            
-
-            [clojure-contracts-sugar.utils.wrapped-functions :as utils-wrapped
-             :refer (wrap-functions
-                     wrap-functions-with-template)]
-
-            [clojure-carp :as carp :refer (surprise-exception missing-exception duplicate-exception trace-value-entr trace-value-exit trace-value-call trace-value-body)]
+  (:require [clojure-contracts-sugar.manifests :as manifests :refer (manifest-aspect-argument-type-spit manifest-aspect-argument-type-suck manifest-aspect-argument-types manifest-aspect-assertion-types)]
+            [clojure-contracts-sugar.utils.utils :as utils :refer (to-vector to-collection make-fin-suck-arg-symbol-from-index make-fin-spit-arg-symbol-from-index)]
+            [clojure-contracts-sugar.utils.makros :as utils-makros :refer (define-fn-apply-predicate-to-collection)]
+            [clojure-contracts-sugar.utils.walk-forms :as utils-walkies :refer (walk-forms)]
+            [clojure-contracts-sugar.utils.wrapped-functions :as utils-wrapped :refer (wrap-functions wrap-functions-with-template)]
+            [clojure-carp :as carp :refer (surprise-exception missing-exception duplicate-exception)]
             [clojure.core.memoize :as memo]))
 
 ;; Aspect Constraints for clojure-contracts-sugar
@@ -38,11 +23,9 @@
   (toString [t] (str "AspAst(" (:form t) ")")))
 
 (defn is-aspect-assertion? [t] (instance? AspectAssertion t))
-(defn is-aspect-assertions?
-  [ts]
-  {:pre [(coll? ts)]}
-  (let [all-valid (every? is-aspect-assertion? ts)]
-    (if all-valid ts)))
+
+;; (defn is-aspect-assertions?
+(define-fn-apply-predicate-to-collection is-aspect-assertions? is-aspect-assertion?)
 
 (defn aspect-assertion-factory
   [form]
@@ -94,16 +77,17 @@
   (aspect-argument-type [this])
   (aspect-argument-map-assertions [this map-fn])
   (aspect-argument-filter-assertions [this predicate-fn])
-  (aspect-argument-update [this update-fn])
-  (say-hello [t]))
+  (aspect-argument-update [this update-fn]))
+
 
 (defrecord AspectArgumentSuck [argument-index argument-assertions]
   Object
   (toString [t]
     (let [assertions (:argument-assertions t)
           assertion-values (map #(aspect-assertion-form %1) assertions)
-          assertion-values-strings (apply str (interpose "-" assertion-values))
-          argument-string (format "AspArgSuck(%d/%d-%s)" (:argument-index t) (count assertions) assertion-values-strings )]
+          argument-string (if (not-empty assertion-values)
+                            (format "AspArgSuck(%d/%d-%s)" (:argument-index t) (count assertions) (apply str (interpose "-" assertion-values)))
+                            (format "AspArgSuck(%d/%d)" (:argument-index t) (count assertions)))]
       argument-string)))
 
 (defrecord AspectArgumentSpit [argument-index argument-assertions]
@@ -117,21 +101,14 @@
 
 ;; set lookup
 (defn is-aspect-argument-type? [argument-type] (manifest-aspect-argument-types argument-type))
-(defn is-aspect-argument-types?
-  [ts]
-  {:pre [(coll? ts)]}
-  (if (every? is-aspect-argument-type? ts) ts))
+(define-fn-apply-predicate-to-collection is-aspect-argument-types? is-aspect-argument-type?)
 
 (defn is-aspect-argument-index? [argument-index]
   {:pre [(number? argument-index) (>= argument-index 0)]}
   argument-index)
 
 (defn is-aspect-argument? [t] (satisfies? AspectArgumentProtocol t))
-(defn is-aspect-arguments?
-  [ts]
-  {:pre [(coll? ts)]}
-  (let [all-valid (every? is-aspect-argument? ts)]
-    (if all-valid ts)))
+(define-fn-apply-predicate-to-collection is-aspect-arguments? is-aspect-argument?)
 
 (defn is-suck-aspect-argument? [t] (instance? AspectArgumentSuck t))
 (defn is-spit-aspect-argument? [t] (instance? AspectArgumentSpit t))
@@ -146,7 +123,7 @@
    :aspect-argument-add-assertion (fn [t a] (aspect-argument-add-assertions t [a]))
 
    :aspect-argument-add-assertions  (fn [t a]
-                                      {:pre [(coll? a) (every? is-aspect-assertion?  a)]}
+                                      {:pre [(is-aspect-assertions?  a)]}
                                       (aspect-argument-new t (:argument-index t) (into [] (concat (:argument-assertions t) a))))
 
    :aspect-argument-is-same-type? (fn [t o]
@@ -195,31 +172,17 @@
    (fn [t update-fn]
      {:pre [(fn? update-fn)] :post [(is-aspect-argument? %)]}
      (let [updated-argument (update-fn t)]
-       updated-argument))
-
-   }
-
-  )
+       updated-argument))})
 
 (def suck-fns-specific-aspect-argument
-  {
-   :aspect-argument-index-symbol (fn [t] (make-fin-suck-arg-symbol-from-index (:argument-index t)))
-
+  {:aspect-argument-index-symbol (fn [t] (make-fin-suck-arg-symbol-from-index (:argument-index t)))
    :aspect-argument-new (fn [t argument-index assertions] (AspectArgumentSuck. argument-index assertions))
-   :aspect-argument-type (fn [t] manifest-aspect-argument-type-suck)
-   }
-
-  )
+   :aspect-argument-type (fn [t] manifest-aspect-argument-type-suck)})
 
 (def spit-fns-specific-aspect-argument
-  {
-   :aspect-argument-index-symbol (fn [t] (make-fin-spit-arg-symbol-from-index (:argument-index t)))
-
+  {:aspect-argument-index-symbol (fn [t] (make-fin-spit-arg-symbol-from-index (:argument-index t)))
    :aspect-argument-new (fn [t argument-index assertions] (AspectArgumentSpit. argument-index assertions))
-   :aspect-argument-type (fn [t] manifest-aspect-argument-type-spit)
-   }
-
-  )
+   :aspect-argument-type (fn [t] manifest-aspect-argument-type-spit)})
 
 (def aspect-argument-suck-fns (merge  aspect-argument-base-fns suck-fns-specific-aspect-argument))
 (def aspect-argument-spit-fns (merge  aspect-argument-base-fns spit-fns-specific-aspect-argument))
@@ -229,12 +192,12 @@
 
 (defn aspect-argument-factory
   [argument-type argument-index argument-assertions]
-  {:pre [(keyword? argument-type) (number? argument-index) (coll? argument-assertions) (every? is-aspect-assertion? argument-assertions)] :post [(is-aspect-argument? %)]}
+    {:pre [(keyword? argument-type) (number? argument-index) (is-aspect-assertions? argument-assertions)] :post [(is-aspect-argument? %)]}
   (let [aspect-argument
         (cond
          (= :suck argument-type) (->AspectArgumentSuck argument-index (into [] argument-assertions))
          (= :spit argument-type) (->AspectArgumentSpit argument-index (into [] argument-assertions))
-         :else (carp/surprise-exception argument-type "aspect-argument-factory" "argument-type not :suck or :spit"))]
+         :else (surprise-exception argument-type "aspect-argument-factory" "argument-type not :suck or :spit"))]
     aspect-argument))
 
 (defn aspect-argument-merge
@@ -301,11 +264,7 @@
       constraint-string)))
 
 (defn is-aspect-constraint? [t] (instance? AspectConstraint t))
-(defn is-aspect-constraints?
-  [ts]
-  {:pre [(coll? ts)]}
-  (let [all-valid (every? is-aspect-constraint? ts)]
-    (if all-valid ts)))
+(define-fn-apply-predicate-to-collection is-aspect-constraints? is-aspect-constraint? )
 
 (defn aspect-constraint-factory
   [arguments]
@@ -373,11 +332,10 @@
                            (fn [t] (aspect-argument-index t))
                            (filter is-suck-aspect-argument? arguments))
 
-           suck-assertions  (apply concat (map aspect-argument-express-assertions suck-arguments))
+           suck-assertions  (distinct (apply concat (map aspect-argument-express-assertions suck-arguments)))
 
            spit-arguments (filter is-spit-aspect-argument? arguments)
-
-           spit-assertions  (apply concat (map aspect-argument-express-assertions spit-arguments))
+           spit-assertions  (distinct (apply concat (map aspect-argument-express-assertions spit-arguments)))
 
            expressed-assertions (into []
                                       (cond
@@ -444,11 +402,7 @@
    (fn [t update-fn]
      {:pre [(fn? update-fn)] :post [(is-aspect-constraint? %)]}
      (let [updated-constraint (update-fn t)]
-       updated-constraint))
-
-   }
-
-  )
+       updated-constraint))})
 
 (extend AspectConstraint AspectConstraintProtocol aspect-constraint-base-fns)
 
@@ -600,7 +554,6 @@
   ([aspect-constraints argument-type argument-index assertion-maps]
      {:pre [(is-aspect-constraints? aspect-constraints)  (is-aspect-argument-index? argument-index)]
       :post [(is-aspect-constraints? %)]}
-
      (let [argument-types (to-collection argument-type)
            _ (assert (every? is-aspect-argument-type? argument-types))
 
@@ -643,9 +596,6 @@
 
 (wrap-functions
 
- ;;is-aspect-argument-index?
- ;;is-aspect-argument-type?
-
  aspect-argument-merge
  aspect-constraint-merge
 
@@ -655,6 +605,7 @@
  aspect-assertion-factory
  aspect-argument-factory
  aspect-constraint-factory
+ 
  )
 
 ;; ************

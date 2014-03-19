@@ -1,11 +1,8 @@
 (ns clojure-contracts-sugar.utils.wrapped-functions
   (:require [clojure.core.memoize :as memo]
-            [clojure-carp :as carp :refer (surprise-exception trace-value-entr trace-value-exit trace-value-call trace-value-body)]
+            [clojure-carp :as carp :refer (surprise-exception)]
             [clojure.walk :as walkies]
-            [taoensso.timbre.profiling :as profiling])
-)
-
-;; Utilities for clojure-contracts-sugar
+            [taoensso.timbre.profiling :as profiling]))
 
 ;; **********************
 ;; BEG: support functions
@@ -85,7 +82,6 @@
   {:memoize {:handler define-memoized-function
              :memoizer 'clojure.core.memoize/lu
              :args [:lu/threshold 40]}
-
    :profile {:handler define-profiled-function}})
 
 (def wrapped-functions-steps-default [:profile :memoize])
@@ -182,3 +178,4 @@
 ;; ***************************
 ;; FIN: wrapped function macros
 ;; ****************************
+

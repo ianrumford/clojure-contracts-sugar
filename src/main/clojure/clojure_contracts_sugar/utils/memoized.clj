@@ -1,14 +1,8 @@
 (ns clojure-contracts-sugar.utils.memoized
   (:require [clojure.core.memoize :as memo]
             [clojure.core.cache :as cache]
-            [clojure-carp :as carp :refer (surprise-exception trace-value-entr trace-value-exit trace-value-call trace-value-body)]
-
-            [clojure-contracts-sugar.utils.utils :as utils
-             :refer (to-collection
-                     to-vector
-                     atom?
-
-                     )]))
+            [clojure-carp :as carp :refer (surprise-exception)]
+            [clojure-contracts-sugar.utils.utils :as utils :refer (to-collection to-vector is-atom?)]))
 
 ;; Memoization for clojure-contracts-sugar
 
@@ -39,10 +33,8 @@
   {:pre [(is-memoized? memo-fn)]}
   (let [memo-meta (meta memo-fn)
         _ (assert (map? memo-meta))
-
         cache-atom (get memo-meta :clojure.core.memoize/cache)
-        _ (assert (atom? cache-atom))
-
+        _ (assert (is-atom? cache-atom))
         cache-value @cache-atom
         _ (assert (is-memoized-cache?  cache-value) )]
     cache-value))

@@ -1,27 +1,12 @@
 (ns aspect-profile1
   (:use [clojure.test :only [deftest is function?]])
-  (:require [clojure.core.contracts :as ccc]
-            [clojure-contracts-sugar :as ccs
-             :refer (apply-contract-aspects
-                     update-contract-aspects
-                     configure-contracts-store)]
-            [clojure-carp :as carp
-             :refer (trace-value-body
-                     trace-value-entr
-                     trace-value-exit)]
+  (:require [clojure.core.contracts :as ccc] [clojure-contracts-sugar :as ccs :refer (apply-contract-aspects update-contract-aspects configure-contracts-store)]
+            [clojure-potrubi.traces.trace :as trace :refer (trace-value-body trace-value-entr trace-value-exit trace-configure)]
             [taoensso.timbre.profiling :as profiling]
-            ;;[clojure-contracts-sugar.utils.utils :as utils]
-            
-            [clojure-contracts-sugar.aspects.contracts :as aspect-contracts
-             :refer (resolve-aspects-contracts
-
-                     )]
-            
-            ))
+            [clojure-contracts-sugar.aspects.contracts :as aspect-contracts :refer (resolve-aspects-contracts)]))
 
 ;;(carp/macro-set-trace true *ns* "ENTR")
-(carp/trace-configure :first-telltale-format-specification "%-40s")
-
+(trace-configure :first-telltale-format-specification "%-40s")
 
 (ccs/configure-contracts-store
  aspect-mnemonic-definitions
@@ -47,26 +32,6 @@
   ;;:suck-map-spit-vector-test2 '[[v] [(map? v) => vector? ]]
   :suck-map-string-test1 {:suck [:map :string] }
   :suck-map-string-spit-vector-test1 {:suck [:map :string] :spit :vector}
-
-  ;; :abs-map0 {:suck [[(map? abs-arg0)]]}
-  ;; :abs-vector0 {:suck [[(vector? abs-arg0)]]}
-  ;; :abs-string0 {:suck [[(string? abs-arg0)]]}
-  ;; :abs-number0 {:suck [[(number? abs-arg0)]]}
-
-  ;; :abs-map1 {:suck [[(map? abs-arg1)]]}
-  ;; :abs-vector1 {:suck [[(vector? abs-arg1)]]}
-  ;; :abs-string1 {:suck [[(string? abs-arg1)]]}
-  ;; :abs-number1 {:suck [[(number? abs-arg1)]]}
-  
-  ;; :abs-map2 {:suck [[(map? abs-arg2)]]}
-  ;; :abs-vector2 {:suck [[(vector? abs-arg2)]]}
-  ;; :abs-string2 {:suck [[(string? abs-arg2)]]}
-  ;; :abs-number2 {:suck [[(number? abs-arg2)]]}
-  
-  ;; :rel-map0 {:suck [[(map? arg0)]]}
-  ;; :rel-vector0 {:suck [[(vector? arg0)]]}
-  ;; :rel-string0 {:suck [[(string? arg0)]]}
-  ;; :rel-number0 {:suck [[(number? arg0)]]}
 
   :abs-map0 {:suck [[(map? abs-arg0)]] :spit [[(map? abs-arg0)]]}
   :abs-vector0 {:suck [[(vector? abs-arg0)]] :spit [[(vector? abs-arg0)]]}
@@ -102,39 +67,14 @@
   
   })
 
-(def base-fn0 (fn [& x]
-           (println "THIS IS FN0: x" (class x) x)
-           x
-           ))
+(def base-fn0 (fn [& x] (println "THIS IS FN0: x" (class x) x) x))
 
 (def base-fn1 (fn [x] (println "THIS IS FN1: x" (class x) x) x))
 
 (def fn-test1 base-fn1)
 
 
-;; ;; Helper for accessor examples expected to work.  Returns the expected result, else fails
 
-;; (defn will-workxxx
-;;   [fn-constrained & fn-args]
-;;   (let [actual-result (apply fn-constrained fn-args)]
-;;     (println "will-work" "worked as expected" "actual-result" actual-result "fn-constrained" fn-constrained "fn-args" fn-args)
-;;     actual-result))
-
-;; ;; Helper for accessor examples expected to fail.  Catches the expected AssertionError, else fails.
-;; ;; A nil return from the function is ok
-
-;; (defn will-failxxx
-;;   [fn-constrained & fn-args]
-;;   (try
-;;     (do
-;;       (let [return-value (apply fn-constrained fn-args)]
-;;         (if return-value (assert (println "will-fail" "DID NOT FAIL" "did not cause AssertionError" "fn-constrained" fn-constrained "fn-args" fn-args "RETURN-VALUE" (class return-value) return-value)))))
-;;     (catch AssertionError e
-;;       (println "will-fail" "failed as expected" "fn-constrained" fn-constrained "fn-args" fn-args))))
-
-
-;; (defn will-work [& args] (profiling/p :will-work (apply will-workxxx args)))
-;; (defn will-fail [& args] (profiling/p :will-fail (apply will-failxxx args)))
 
 ;; this lifted from aspect-tests1
 (def test-suite3-working

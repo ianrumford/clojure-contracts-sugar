@@ -2,23 +2,13 @@
   (:require [clojure-contracts-sugar.manifests :as manifests
              :refer (manifest-contracts-store-key-aspects-store
                      manifest-contracts-store-key-constraints-store)]
+            [clojure-contracts-sugar.utils.memoized :as utils-memo :refer (new-memoized is-memoized? update-memoized edit-memoized-snapshot lookup-memoized snapshot-memoized evict-memoized)]
 
-            [clojure-contracts-sugar.utils.memoized :as utils-memo
-             :refer (new-memoized
-                     is-memoized?
-                     update-memoized
-                     edit-memoized-snapshot
-                     lookup-memoized
-                     snapshot-memoized
-                     evict-memoized)]
-            
             [clojure-contracts-sugar.utils.utils :as utils :refer (to-collection)]
-
-            [clojure-carp :as carp :refer (surprise-exception trace-value-entr trace-value-exit trace-value-call trace-value-body)]))
+            [clojure-carp :as carp :refer (surprise-exception)]
+            [clojure.core.memoize :as memo]))
 
 ;; Store Support for clojure-contracts-sugar
-
-;;(carp/macro-set-trace false) ;; Enable tracing during macro expansion
 
 ;; *****************************************
 ;; BEG: standard aspect mnemonic definitions
@@ -89,8 +79,7 @@
          (map? mnemonics) (every? is-aspect-mnemonic? (keys mnemonics))]
    :post [(is-memoized? %)]}
   (if mnemonics (do
-                  (update-memoized aspects-store (validate-aspect-mnemonic-definitions mnemonics)))
-)
+                  (update-memoized aspects-store (validate-aspect-mnemonic-definitions mnemonics))))
   aspects-store)
 
 ;; ****************************

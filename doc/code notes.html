@@ -4,7 +4,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
 <head>
 <title>clojure-contracts-sugar code notes</title>
-<!-- 2014-02-19 Wed 13:34 -->
+<!-- 2014-03-19 Wed 10:10 -->
 <meta  http-equiv="Content-Type" content="text/html;charset=utf-8" />
 <meta  name="generator" content="Org-mode" />
 <meta  name="author" content="Ian Rumford" />
@@ -152,6 +152,9 @@ TL;DR: clojure-contracts-sugar - some implementations notes
 <div class="outline-text-3" id="text-1-1">
 <p>
 Contract definitions are held  in the Contracts Store.
+</p>
+
+<p>
 The store is a an clojure.core.memoize cache.
 </p>
 </div>
@@ -176,6 +179,7 @@ also memoized in the Constraints Store, which is held in the Contracts Store.
 </div>
 </div>
 </div>
+
 <div id="outline-container-sec-2" class="outline-2">
 <h2 id="sec-2"><span class="section-number-2">2</span> Aspect Contracts</h2>
 <div class="outline-text-2" id="text-2">
@@ -393,7 +397,7 @@ Each Aspect Argument contains one or more Aspect Assertions (e.g.
 </div>
 <div id="postamble" class="status">
 <p class="author">Author: Ian Rumford</p>
-<p class="date">Created: 2014-02-19 Wed 13:34</p>
+<p class="date">Created: 2014-03-19 Wed 10:10</p>
 <p class="creator"><a href="http://www.gnu.org/software/emacs/">Emacs</a> 24.3.1 (<a href="http://orgmode.org">Org</a> mode 8.2.5c)</p>
 <p class="validation"><a href="http://validator.w3.org/check?uri=referer">Validate</a></p>
 </div>

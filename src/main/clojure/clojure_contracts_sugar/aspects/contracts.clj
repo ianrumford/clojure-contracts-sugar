@@ -1,7 +1,7 @@
 (ns clojure-contracts-sugar.aspects.contracts
   (:require [clojure-contracts-sugar.manifests :as manifests :refer (manifest-aspect-specification-key-form-ctx)]
             [clojure-contracts-sugar.aspects.specifications :as aspects-specifications]
-            [clojure-carp :as carp :refer (surprise-exception missing-exception trace-value-entr trace-value-exit trace-value-call trace-value-body)]))
+            [clojure-carp :as carp :refer (surprise-exception missing-exception)]))
 
 ;; *******************************
 ;; BEG: resolving aspect contracts

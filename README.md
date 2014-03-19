@@ -25,15 +25,14 @@ definition to your `pom.xml`:
 
 With Leiningen:
 
-    [name.rumford/clojure-contracts-sugar "0.1.0"]
-
+    [name.rumford/clojure-contracts-sugar "0.2.0"]
 
 With Maven:
 
     <dependency>
       <groupId>name.rumford</groupId>
       <artifactId>clojure-contracts-sugar</artifactId>
-      <version>0.1.0</version>
+      <version>0.2.0</version>
     </dependency>
 
 
@@ -41,13 +40,14 @@ With Maven:
 
 This [post](http://ianrumford.github.io/blog/2014/02/19/a-little-sugar-with-your-clojure-aspect-contracts/) should give a reasonable overview of the library.
 
-
 ## Testing
 
 clojure-contracts-sugar uses [Leiningen 2](http://leiningen.org).
 
+``` clojure
 lein test aspect-tests1
-
+```
+>>>>>>> develop-0.2.0
 
 ## License
 

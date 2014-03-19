@@ -2,10 +2,15 @@
   (:use [clojure.test :only [deftest is function?]])
   (:require [clojure.core.contracts :as ccc]
             [clojure-contracts-sugar :as ccs]
-            [clojure-carp :as carp]))
+            [clojure-potrubi.traces.trace :as trace]
+            [clojure-potrubi.traces.diagnostics :as potrubi-traces-diagnostics :refer (macro-set-diagnostics)]
+            [clojure-potrubi.tests.harnesses :as potrubi-tests-harnesses :refer (test-harness1)]
+            ))
 
 ;;(carp/macro-set-trace true *ns* "ENTR")
 ;;(carp/trace-configure :first-telltale-format-specification "%-40s")
+;;(trace/disable-trace)
+(trace/macro-disable-trace)
 
 ;; Add some mnemonics
 
@@ -58,20 +63,13 @@
   :map-test1 '[[v] [(map? v) => (map? %)]]
   :vector-test1 '[[v] [(vector? v) => (vector? %)]]
   :suck-map-spit-vector-test1 '[[v] [(map? v) => (vector? %)]]
-  :suck-map-spit-vector-test2 '[[v] [(map? v) => vector? ]]
+  :suck-map-spit-vector-test2 '[[v] [(map? v) => vector? ]]})
 
-  })
-
-
-(def base-fn0 (fn [& x]
-                (println "THIS IS FN0: x" (class x) x)
-                x
-                ))
+(def base-fn0 (fn [& x] (println "THIS IS FN0: x" (class x) x) x))
 
 (def base-fn1 (fn [x] (println "THIS IS FN1: x" (class x) x) x))
 
 (def fn-test1 base-fn1)
-
 
 
 (defn whatis?
@@ -189,16 +187,14 @@
 
    ;;[ {:suck [{0 :keyword} {1 '[:map (every? keyword? (keys arg0)) (every? number? (vals arg0))]} {2 :string}]  :spit :vector} (fn [k m s] [1 2 3]) (list :a {:a 1} "s1") (list :a 1 "s1") [1 2 3]] ;; ok
 
-   
-
    [:suck-map-string-test1 (fn [x y] [1 2 3]) (list {:a 1} "s1") (list :a 1) [1 2 3]]
+
 
    ;; WILL NEVER WORK CURRENTLY
 
    ;; [[{:suck :map} {:suck :map :spit :vector}]  (fn [x] [1 2 3]) {:a 1} 1 [1 2 3]]  ;; breaks - same arity
    ;; [{:spit [:map ] } fn-test1 {:a 1}] ;; breaks - no suck arity
 
-   
    ])
 
 
@@ -235,7 +231,7 @@
                   (= test-aspect :not-nil) valid-value
                   :else (or return-value-nom valid-value-nom))
 
-                 _ (doall (println "test-apply-aspects1" "TEST-ASPECT" test-aspect "VALID-VALUE" (class valid-value) valid-value "INVALID-VALUE" invalid-value "RETURN-VALUE" return-value))
+                  _ (doall (println "test-apply-aspects1" "TEST-ASPECT" test-aspect "VALID-VALUE" (class valid-value) valid-value "INVALID-VALUE" invalid-value "RETURN-VALUE" return-value))
                  
                  fn-aspect (eval `(ccs/apply-contract-aspects ~fn-test# ~test-aspect))
 
@@ -247,6 +243,7 @@
              (is (thrown? AssertionError (apply fn-aspect invalid-value)))
              
              ))))
+
 
 
 

@@ -5,30 +5,13 @@
                      update-contract-aspects
                      configure-contracts-store)]
             [clojure-carp :as carp]
+            [clojure-potrubi.traces.trace :as trace]
+            [clojure-potrubi.tests.harnesses :as potrubi-tests-harnesseses :refer (will-work will-fail)]
             [taoensso.timbre.profiling :as profiling]))
 
+(trace/disable-trace)
 ;;(carp/macro-set-trace true *ns* "ENTR")
 ;;(carp/trace-configure :first-telltale-format-specification "%-40s")
-
-;; Helper for accessor examples expected to work.  Returns the expected result, else fails
-
-(defn will-work
-  [fn-constrained & fn-args]
-  (let [actual-result (apply fn-constrained fn-args)]
-    (println "will-work" "worked as expected" "actual-result" actual-result "fn-constrained" fn-constrained "fn-args" fn-args)
-    actual-result))
-
-;; Helper for accessor examples expected to fail.  Catches the expected AssertionError, else fails.
-;; A nil return from the function is ok
-
-(defn will-fail
-  [fn-constrained & fn-args]
-  (try
-    (do
-      (let [return-value (apply fn-constrained fn-args)]
-        (if return-value (assert (println "will-fail" "DID NOT FAIL" "did not cause AssertionError" "fn-constrained" fn-constrained "fn-args" fn-args "RETURN-VALUE" (class return-value) return-value)))))
-    (catch AssertionError e
-      (println "will-fail" "failed as expected" "fn-constrained" fn-constrained "fn-args" fn-args))))
 
 ;; Wrapper to run all tests
 (defn run-all-tests
@@ -177,7 +160,11 @@
 
 (will-fail suck-map-keyword-keys-fn1 {"x" 1 :b 2 :c 1})
 
-;; Example - using CCC's format with rich assertions
+;; Example - this will fail as test-map2's keys are not keywords
+
+;;(suck-map-keyword-keys-fn1 test-map2)
+
+;; Example - using CCC's format to specify multiple assertions
 
 ;; In this example, the assertion constrains the function to suck a map,
 ;; with keywords keys and numeric values, and a keyword.
@@ -350,7 +337,7 @@
 
 ;; In this example, the three level mnemonic packages the complete assertion
 
-(def mnemonic-suck-map-special-keyword-spit-number-fn1 (apply-contract-aspects (fn [m k] (k m)) :contract-suck-map-special-and-keyword-spit-number))
+(def mnemonic-suck-map-special-keyword-spit-number-fn1 (apply-contract-aspects (fn [m k] (k m)) :contract-suck-map-special-and-keyword-spit-number ))
 
 ;; Exactly the same tests as above
 

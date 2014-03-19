@@ -1,35 +1,19 @@
 (ns clojure-contracts-sugar.utils.utils
   (:require [clojure.core.memoize :as memo]
-            [clojure-carp :as carp :refer (surprise-exception trace-value-entr trace-value-exit trace-value-call trace-value-body)]
-            [clojure.walk :as walkies]))
+            [clojure-potrubi.utils.names :as potrubi-utils-names :refer (resolve-name-from-keyword)]
+            [clojure-potrubi.utils.atoms :as potrubi-utils-atoms]
+            [clojure-potrubi.utils.collections :as potrubi-utils-collections]
+            [clojure-carp :as carp :refer (surprise-exception)]))
 
 ;; Utilities for clojure-contracts-sugar
 
-;; *******************
-;; BEG: atom functions
-;; *******************
+(def to-collection clojure-potrubi.utils.collections/to-collection)
+(def to-vector clojure-potrubi.utils.collections/to-vector)
+(def is-atom? clojure-potrubi.utils.atoms/is-atom? )
 
-(defn atom?
-  [a] (instance? clojure.lang.Atom a))
-
-(defn make-fn-find-atom
-  ([] (make-fn-find-atom (atom nil)))
-  ([value]
-       {:pre [(atom? value)] :post [(fn? %)]}
-       (fn [] value)))
-
-;; *******************
-;; FIN: atom functions
-;; *******************
-
-;; *************************
+;; *********************
 ;; BEG: naming functions
-;; *************************
-
-(defn resolve-name-from-keyword
-  [k]
-  {:pre [(keyword? k)] :post [(string? %)]}
-  (-> k str (subs 1)))
+;; *********************
 
 (defn resolve-aspect-name-from-keyword
   [k]
@@ -47,14 +31,6 @@
   [x]
   {:pre [(keyword? x)] :post [(symbol? %)]}
   (symbol (resolve-aspect-name-from-keyword x)))
-
-;; *************************
-;; FIN: conversion functions
-;; *************************
-
-;; *********************
-;; BEG: naming functions
-;; *********************
 
 (defn make-arg-name
   [& args]
@@ -87,7 +63,7 @@
 (def make-fin-suck-arg-name-from-index (make-fn-arg-name-from-index "arg"))
 
 (def make-abs-spit-arg-name-from-index (make-fn-arg-name-from-index "abs-arg"))
-(defn make-rel-spit-arg-name-from-index [& any] "arg")
+(def make-rel-spit-arg-name-from-index (make-fn-arg-name-from-index "arg"))
 (defn make-fin-spit-arg-name-from-index [& any] "%")
 
 (def make-park-arg-symbol-from-index (make-fn-arg-symbol-from-index make-park-arg-name-from-index))
@@ -140,6 +116,16 @@
           :else token))
        names))
 
+(defmacro define-fn-apply-predicate-to-collection
+  [fn-name pred-fn]
+  (let [apply-form# nil
+
+        apply-form# `(def ~fn-name (fn [~'ts] {:pre [(coll? ~'ts)]} (every? ~pred-fn ~'ts)))]
+
+    `(do
+       ~apply-form#
+       nil)))
+
 ;; *********************
 ;; FIN: naming functions
 ;; *********************
@@ -147,19 +133,6 @@
 ;; *************************
 ;; BEG: collection functions
 ;; *************************
-
-(defn to-collection
-  [any]
-  (cond
-   (coll? any) any
-   :else (list any)))
-
-(defn to-vector
-  [any]
-  (cond
-   (vector? any) any
-   :else [any])
-)
 
 (defn assoc-in-multiple
   [src-map & args]
@@ -176,108 +149,3 @@
 ;; *************************
 ;; FIN: collection functions
 ;; *************************
-
-;; ***************
-;; BEG: walk forms
-;; ***************
-
-(defn make-begin-finish-number-range
-  "make a range of numbers starting from number-bege
-  through  number-fin"
-  [number-beg number-fin]
-  {:pre [(number? number-fin) (>= number-beg 0)
-         (number? number-fin) (>= number-fin 0)
-         (>= number-fin number-beg )]
-   :post [(coll? %) (every? number? %)]}
-  (range number-beg (+ 1 number-fin)))
-
-(defn make-begin-count-number-range
-  ([number-count] (make-begin-count-number-range 0 number-count))
-  ([number-beg number-count]
-     {:pre [(number? number-beg) (number? number-count)]}
-     (make-begin-finish-number-range number-beg (- (+ number-beg number-count) 1))))
-
-(defn make-walk-argument-symbol-map
-  "creates an array-map of argument name mapping e.g. abs-arg0 => arg5
-   NOTE the argument-range starts at the HIGHEST to shift rightmost first"
-  [arg-no src-offset tgt-offset fn-src-arg fn-tgt-arg]
-  {:pre [(number? arg-no)
-         (number? src-offset)
-         (number? tgt-offset)
-         (fn? fn-src-arg)
-         (fn? fn-tgt-arg)]
-   :post [(map? %) (every? symbol? (keys %)) (every? symbol? (vals %))]}
-
-  (let [argument-range (make-begin-count-number-range arg-no)
-
-        argument-map (apply array-map
-                           (apply concat
-                            (map
-                             (fn [arg-no] [(fn-src-arg (+ src-offset arg-no)) (fn-tgt-arg (+ tgt-offset arg-no))])
-                             (reverse argument-range))))]
-
-    argument-map))
-
-(def make-walk-argument-symbol-map (memo/lu make-walk-argument-symbol-map :lu/threshold 20))
-
-(defn walk-map-forms
-  "walks a collection of source maps and
-   applied the the value of each key in symbol-map to the matching key in the source map"
-  [symbol-map source-maps]
-  {:pre [(map? symbol-map)
-         (every? symbol? (apply concat (apply concat (vals symbol-map))) )
-         (every? map? (vals symbol-map))
-         (coll? source-maps)]
-   :post [(coll? %) (every? map? %)]}
-  (let [walked-forms
-        (into []
-              (map-indexed
-               (fn [source-index source-map]
-                 (reduce
-                  (fn [s [map-key map-form]]
-                    (if-let [sig-map (get symbol-map map-key)]
-                      (assoc s map-key (walkies/prewalk-replace sig-map map-form))
-                      s))
-                  {}
-                  source-map))
-
-               source-maps))]
-    walked-forms))
-
-(defn walk-forms
-  "walks a collection of source form and
-   applied each symbol-map"
-  [symbol-maps source-forms]
-  {:pre [
-         (coll? symbol-maps)
-         (every? map? symbol-maps)
-         (coll? source-forms)]
-   :post [(coll? %)]}
-  (let [walked-forms
-        (map
-         (fn [form]
-           (reduce
-            (fn [walked-form symbol-map] (walkies/prewalk-replace symbol-map walked-form))
-            form
-            symbol-maps))
-         source-forms)]
-    walked-forms))
-
-;; ***************
-;; FIN: walk forms
-;; ***************
-
-(defn build-symbol-maps-and-walk-forms
-  [source-forms symbol-max src-offset tgt-offset fn-src-symbol fn-tgt-symbol]
-  {:post [(map? %) (every? keyword? (keys %))]}
-  (let [symbol-map (make-walk-argument-symbol-map symbol-max src-offset tgt-offset fn-src-symbol fn-tgt-symbol)
-        walked-forms (walk-forms [symbol-map] source-forms)
-
-        return-state {:source-forms source-forms
-                      :walked-forms walked-forms
-                      :symbol-map symbol-map}]
-
-    return-state))
-
-(def memo-build-symbol-maps-and-walk-forms (memo/lu build-symbol-maps-and-walk-forms :lu/threshold 20))
-

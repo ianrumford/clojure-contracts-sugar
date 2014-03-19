@@ -6,18 +6,18 @@
                      manifest-aspect-assertion-types
                      manifest-aspect-argument-types)]
 
-            [clojure-contracts-sugar.utils.utils :as utils
-             :refer (to-vector
-                     to-collection
-                     find-argument-symbol-from-index-fn
-                     memo-build-symbol-maps-and-walk-forms)]
+            [clojure-contracts-sugar.utils.utils :as utils :refer (to-vector to-collection find-argument-symbol-from-index-fn)]
 
-            [clojure-contracts-sugar.utils.wrapped-functions :as utils-wrapped
-             :refer (wrap-functions
-                     wrap-functions-with-template)]
+            [clojure-contracts-sugar.utils.makros :as utils-makros :refer (define-fn-apply-predicate-to-collection)]
 
-            [clojure-carp :as carp :refer (surprise-exception trace-value-entr trace-value-exit trace-value-call trace-value-body)]
-            [clojure.walk :as walkies]))
+            [clojure-contracts-sugar.utils.walk-forms :as utils-walkies :refer (build-symbol-maps-and-walk-forms)]
+
+            [clojure-contracts-sugar.utils.wrapped-functions :as utils-wrapped :refer (wrap-functions wrap-functions-with-template)]
+
+            [clojure-carp :as carp :refer (surprise-exception)]
+            [clojure.walk :as walkies]
+            [clojure.core.memoize :as memo]))
+
 
 ;; *************************
 ;; BEG: validate aspect form
@@ -41,12 +41,19 @@
         (and
          (map? aspect-form)
          (every? manifest-aspect-form-keys (keys aspect-form))
+
+         ;; ensure spit has only *one* entry
+         (<= (count (get aspect-form manifest-aspect-form-key-spit) ) 1)
+
          (every? true? (for [[form-type form-value]  aspect-form]
-                  (do
-                    (and (map? form-value)
-                         (every? number? (keys form-value))
-                         (every? vector? (vals form-value)))))))]
+                         (do
+                           (and (map? form-value)
+                                (every? number? (keys form-value))
+                                ;; nil values are ok, else vector
+                                (every? vector? (remove nil? (vals form-value))))))))]
     (if is-aspect-form aspect-form)))
+
+(define-fn-apply-predicate-to-collection is-aspect-forms? is-aspect-form?)
 
 (defn validate-aspect-form
   [aspect-form]
@@ -275,7 +282,7 @@
                                                             (let [source-form (to-collection v)
 
                                                                   walked-form (if (> k 0)
-                                                                                (let [walked-map (memo-build-symbol-maps-and-walk-forms
+                                                                                (let [walked-map (build-symbol-maps-and-walk-forms
                                                                                                   [source-form]
                                                                                                   max-index
                                                                                                   0
@@ -329,7 +336,7 @@
                                                               (fn [x y] (into [] (concat x y)))
                                                               (map-indexed
                                                                (fn [entry-index entry-value]
-                                                                 (normalise-aspect-form-value form-type entry-index  entry-value))
+                                                                 (if entry-value (normalise-aspect-form-value form-type entry-index entry-value)))
                                                                form-list))]
                                        normal-list))]
                                (if form-update
@@ -346,6 +353,27 @@
 ;; **************************
 ;; FIN: normalise aspect form
 ;; **************************
+
+;; ***********************
+;; BEG: merge aspect forms
+;; ***********************
+
+;; (defn merge-aspect-forms
+
+(defn merge-aspect-forms
+  [& aspect-forms]
+  {:pre [(is-aspect-forms? aspect-forms)] :post [(is-aspect-form? %)]}
+  (apply merge-with
+         (fn [value1 value2]
+           (merge-with
+            (fn [arg-value1 arg-value2]
+              (distinct (concat (to-vector arg-value1) (to-vector arg-value1))))
+            value1 value2))
+         aspect-forms))
+
+;; ***********************
+;; BEG: merge aspect forms
+;; ***********************
 
 ;; ************************
 ;; BEG: select aspect forms

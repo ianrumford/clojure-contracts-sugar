@@ -3,7 +3,7 @@
   <groupId>name.rumford</groupId>
   <artifactId>clojure-contracts-sugar</artifactId>
   <packaging>jar</packaging>
-  <version>0.1.0</version>
+  <version>0.2.0</version>
   <name>clojure-contracts-sugar</name>
   <description>Some sugar macros for clojure.core.contracts</description>
   <url>https://github.com/ianrumford/clojure-contracts-sugar</url>
@@ -16,7 +16,7 @@
   <scm>
     <connection>scm:git:git://github.com//.git</connection>
     <developerConnection>scm:git:ssh://git@github.com//.git</developerConnection>
-    <tag>496f8b83aa98d4c62145a527e3f9eae995054a5d
+    <tag>29c9bb7913b1bc4c96fab883d5268477d94d0997
 </tag>
     <url>https://github.com//</url>
   </scm>
@@ -81,6 +81,11 @@
     <dependency>
       <groupId>name.rumford</groupId>
       <artifactId>clojure-carp</artifactId>
+      <version>0.2.0</version>
+    </dependency>
+    <dependency>
+      <groupId>name.rumford</groupId>
+      <artifactId>clojure-potrubi</artifactId>
       <version>0.1.0</version>
     </dependency>
     <dependency>

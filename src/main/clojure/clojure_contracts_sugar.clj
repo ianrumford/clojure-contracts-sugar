@@ -1,15 +1,13 @@
 (ns clojure-contracts-sugar
   (:require [clojure.core.contracts :as ccc]
             [clojure-contracts-sugar.contracts.store :as contracts-store]
-            [clojure-contracts-sugar.aspects.contracts :as aspects-contracts
-             :refer (resolve-aspects-contracts)]
-                        [clojure-carp :as carp :refer (surprise-exception trace-value-entr trace-value-exit trace-value-call trace-value-body)]))
+            [clojure-contracts-sugar.aspects.contracts :as aspects-contracts :refer (resolve-aspects-contracts)]
+            [clojure-carp :as carp :refer (surprise-exception)]))
+
 
 ;; Sugar macros, helpers, etc for clojure.core.contracts
 
 ;; "A work in progress"
-
-;;(carp/macro-set-trace true "clojure-contracts-sugar" "ENTR") ;; Enable tracing during macro expansion
 
 ;; ********************
 ;; BEG: contracts store

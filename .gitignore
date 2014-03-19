@@ -1,5 +1,5 @@
 /target
-*/*/target
+*/*/target/
 /lib
 /classes
 /checkouts
@@ -10,12 +10,11 @@
 *#
 *~
 .#*
-.*~
-.gitignore~
 pom.xml
 pom.xml.asc
 *.jar
 *.class
+*.pdf
 /.lein-*
 /.nrepl-port
 /HOLD

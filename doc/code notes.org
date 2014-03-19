@@ -16,6 +16,7 @@ TL;DR: clojure-contracts-sugar - some implementations notes
 ** Contracts Store
 
 Contract definitions are held  in the Contracts Store.
+
 The store is a an clojure.core.memoize cache.
 
 ** Aspects Store
@@ -28,6 +29,7 @@ accessed via the Contracts Store
 
 Aspect definition are "compiled" into constraints.  Constraints are
 also memoized in the Constraints Store, which is held in the Contracts Store.
+
 
 * Aspect Contracts
 

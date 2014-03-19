@@ -4,8 +4,9 @@
                      manifest-aspect-argument-type-suck
                      manifest-aspect-argument-type-spit
                      manifest-aspect-assertion-types
-                     manifest-aspect-argument-types)]
-            
+                     manifest-aspect-argument-types
+                     )]
+
             [clojure-contracts-sugar.contracts.store :as contracts-store
              :refer (find-aspect-mnemonic-definition
                      find-aspect-mnemonic-constraints
@@ -15,12 +16,12 @@
                      snapshot-constraints-store
                      snapshot-contracts-store
                      configure-contracts-store)]
-            
+
             [clojure-contracts-sugar.aspects.forms :as aspect-forms
              :refer (validate-aspect-form
                      is-aspect-form?
                      is-aspect-form-vector-form?)]
-            
+
             [clojure-contracts-sugar.aspects.constraints :as aspect-constraints
              :refer (is-aspect-constraint?
                      is-aspect-constraints?
@@ -56,26 +57,18 @@
 
                      aspect-constraints-transform-by-type-index
                      aspect-constraints-transform-by-assertions
-                     aspect-constraints-transform)]
-            
-            [clojure-contracts-sugar.utils.utils :as utils
-             :refer (to-collection
-                     to-vector
-                     atom?
-                     make-walk-argument-symbol-map
-                     find-argument-symbol-from-index-fn
-                     walk-forms)]
+                     aspect-constraints-transform
+                     )]
 
-            [clojure-contracts-sugar.utils.memoized :as utils-memo
-             :refer (is-memoized?
-                     snapshot-memoized
-                     evict-memoized)]
+            [clojure-contracts-sugar.utils.utils :as utils :refer (to-collection to-vector find-argument-symbol-from-index-fn)]
 
-            [clojure-contracts-sugar.utils.wrapped-functions :as utils-wrapped
-             :refer (wrap-functions
-                     wrap-functions-with-template)]
+            [clojure-contracts-sugar.utils.walk-forms :as utils-walkies :refer (make-walk-forms-symbol-map walk-forms)]
 
-            [clojure-carp :as carp :refer (surprise-exception missing-exception duplicate-exception trace-value-entr trace-value-exit trace-value-call trace-value-body)]))
+            [clojure-contracts-sugar.utils.memoized :as utils-memo :refer (is-memoized? snapshot-memoized evict-memoized)]
+
+            [clojure-contracts-sugar.utils.wrapped-functions :as utils-wrapped :refer (wrap-functions wrap-functions-with-template)]
+
+            [clojure-carp :as carp :refer (surprise-exception missing-exception duplicate-exception)]))
 
 
 (declare find-aspect-constraints-for-mnemonic)
@@ -130,13 +123,9 @@
      {:pre [(is-aspect-argument-type? src-type)
             (is-aspect-argument-type? tgt-type)
             (is-aspect-argument-index? argument-max)]}
-     (let [;; tgt-fn (get-in utils/make-argument-symbol-from-index-fn-map [tgt-type tgt-fluke
-
-           src-fn (find-argument-symbol-from-index-fn src-type src-fluke)
+     (let [src-fn (find-argument-symbol-from-index-fn src-type src-fluke)
            tgt-fn (find-argument-symbol-from-index-fn tgt-type tgt-fluke)
-
-           rewrite-assertion-map (make-walk-argument-symbol-map argument-max src-offset tgt-offset src-fn tgt-fn)]
-
+           rewrite-assertion-map (make-walk-forms-symbol-map argument-max src-offset tgt-offset src-fn tgt-fn)]
        rewrite-assertion-map)))
 
 (defn final-transform-aspect-constaints-symbol-arguments
@@ -208,9 +197,8 @@
                   (is-aspect-form-vector-form? aspect-entry) (aspect-forms/normalise-aspect-form aspect-entry)
                   (map? aspect-entry) (aspect-forms/normalise-aspect-form aspect-entry)
                   :else (surprise-exception aspect-entry "normalise-aspect-definition" "COLL" "ASPECT-INDEX" aspect-index "aspect-entry is wat?")))
-
                aspect-definition))]
-    normalised-aspect-definition))
+     normalised-aspect-definition))
 
 (defmethod normalise-aspect-definition :default
   [aspect-definition]
@@ -257,8 +245,9 @@
   (let [;; ensure arguments are all same type
         constraint-arguments  (apply concat (map #(aspect-constraint-argument-values %1) aspect-constraints))
         constraint-argument-types (map #(aspect-argument-type %1) constraint-arguments)
-        _ (if-not (apply = constraint-argument-types)
-            (surprise-exception constraint-argument-types "validate-aspect-constraint-arguments-same-type" "ARGUMENT-TYPE" argument-type  "CONSTRAINT-ARGUMENTS" constraint-arguments "have unexpetced types"))]
+        _ (if (not-empty constraint-argument-types)
+            (if-not (apply = constraint-argument-types)
+              (surprise-exception constraint-argument-types "validate-aspect-constraint-arguments-same-type" "ARGUMENT-TYPE" argument-type  "CONSTRAINT-ARGUMENTS" constraint-arguments "have unexpetced types")))]
     argument-type))
 
 ;; **********************************************
@@ -277,16 +266,11 @@
 
          (is-aspect-mnemonic? argument-value)
          (let [aspect-mnemonic argument-value
-
                nominal-constraints (find-aspect-constraints-for-mnemonic aspect-mnemonic)
                ;; need to rewrite
-
-               argument-no (apply max (map (fn [constraint] (count (aspect-constraint-arguments constraint))) nominal-constraints))
-               assertion-maps {
-                               :suck (make-rewrite-assertion-map argument-no :suck :rel 0 :suck :fin argument-index)
-                               }
+               argument-no (apply max (list* 8 (map (fn [constraint] (count (aspect-constraint-arguments constraint))) nominal-constraints)))
+               assertion-maps {:suck (make-rewrite-assertion-map argument-no :suck :rel 0 :suck :fin argument-index)}
                transformed-constraints (aspect-constraints-transform nominal-constraints argument-type argument-index assertion-maps)]
-
            transformed-constraints)
 
          (symbol? argument-value)
@@ -306,45 +290,43 @@
 (defn cacf-argument-spec-entry
   [argument-value argument-type argument-index]
   {:pre [(is-aspect-argument-type? argument-type) (number? argument-index)] :post [(is-aspect-constraints? %)]}
-
   (let [nominal-constraints (cacf-argument-value argument-value argument-type argument-index)
-
-        ;; argument-constraints-by-type
-        ;; (map
-        ;;  nominal-constraints)
-
-        ;; argument-constraints argument-constraints-by-type
-
         argument-constraints nominal-constraints]
-
     argument-constraints))
 
 (defn cacf-argument-spec
   [argument-type argument-index argument-spec]
   {:pre [(keyword? argument-type) (number? argument-index)] :post [(is-aspect-constraints? %)]}
-  (let [argument-values (to-collection argument-spec)
+  (let [argument-values (remove nil? (to-collection argument-spec))
 
-        ;; max no. of arguments for this assertion
-        max-arity (count argument-values)
+        ;; even if the argumnet spec (no constraints) need to generate
+        ;; an argumnet
+        argument-constraints (if (empty? argument-values)
+                               (let [aspect-argument (aspect-argument-factory argument-type argument-index '())
+                                     no-assertions-constraints [(aspect-constraint-factory (list aspect-argument))]]
 
-        nominal-constraints
-        (apply concat
-               (map-indexed
-                (fn [entry-index entry-value]
-                  ;; NOTE - the index is the *argument* *not* the entry
+                                 no-assertions-constraints)
 
-                  (cacf-argument-spec-entry entry-value argument-type argument-index))
+                               (let [;; max no. of arguments for this assertion
+                                     max-arity (count argument-values)
 
-                argument-values))
+                                     nominal-constraints
+                                     (apply concat
+                                            (map-indexed
+                                             (fn [entry-index entry-value]
+                                               ;; NOTE - the index is the *argument* *not* the entry
 
-        _ (validate-aspect-constraint-arguments-same-type argument-type nominal-constraints)
+                                               (cacf-argument-spec-entry entry-value argument-type argument-index))
 
-        reduced-constraints (if (> (count nominal-constraints) 1)
-                              [(apply aspect-constraint-merge nominal-constraints)]
-                              nominal-constraints)
+                                             argument-values))
 
-        argument-constraints reduced-constraints]
+                                     _ (validate-aspect-constraint-arguments-same-type argument-type nominal-constraints)
 
+                                     reduced-constraints (if (> (count nominal-constraints) 1)
+                                                           [(apply aspect-constraint-merge nominal-constraints)]
+                                                           nominal-constraints)]
+
+                                 reduced-constraints))]
     argument-constraints))
 
 (defn create-aspect-constraint-from-form
@@ -363,18 +345,11 @@
                                (map
                                 (fn [[argument-index argument-spec]]
                                   (assert (coll? argument-spec))
-                                  (let [;; ;; ... and create the aspect-constraint
-                                        spec-constraints (cacf-argument-spec argument-type argument-index argument-spec)]
-
-                                    spec-constraints))
+                                  (let [argument-constraints (cacf-argument-spec argument-type argument-index argument-spec)]
+                                    argument-constraints))
                                 arguments-spec))]
-
-                    argument-type-constraints
-
-                    ))
-
+                    argument-type-constraints))
                 aspect-form))
-
         aspect-constraint (apply aspect-constraint-merge argument-constraints)]
     aspect-constraint))
 
@@ -471,8 +446,12 @@
   ([aspect-mnemonic] (find-aspect-constraints-for-symbol aspect-mnemonic manifest-aspect-argument-type-suck  0))
   ([aspect-symbol argument-type argument-index]
      {:pre [(symbol? aspect-symbol)]}
-     (let [aspect-constraints (find-aspect-constraints-for-assertion aspect-symbol argument-type argument-index)]
+     (let [;; create a symbol expression to help distinct-ing same assertions
+           arg-symbol-fn (find-argument-symbol-from-index-fn manifest-aspect-argument-type-suck :rel)
+           aspect-assertion (list aspect-symbol (arg-symbol-fn argument-index))
+           aspect-constraints (find-aspect-constraints-for-assertion aspect-assertion argument-type argument-index)]
        aspect-constraints)))
+
 (defn find-aspect-constraints-for-expression
   [aspect-expression argument-type argument-index]
   {:pre [(coll? aspect-expression)]}
@@ -538,20 +517,19 @@
 ;; *************
 
 (wrap-functions
- is-aspect-definition?
- make-rewrite-assertion-map
- cacf-argument-value
- cacf-argument-spec-entry
- cacf-argument-spec
- create-aspect-constraint-from-form
+  is-aspect-definition?
+  make-rewrite-assertion-map
+  cacf-argument-value
+  cacf-argument-spec-entry
+  cacf-argument-spec
+  create-aspect-constraint-from-form
 
- find-aspect-constraints-for-symbol
- find-aspect-constraints-for-expression
+  find-aspect-constraints-for-symbol
+  find-aspect-constraints-for-expression
 
- ;; DO NOT MEMOIZE find-aspect-constraints-for-mnemonic
- find-aspect-constraints-for-built-in-mnemonic
+  ;; DO NOT MEMOIZE find-aspect-constraints-for-mnemonic
+  find-aspect-constraints-for-built-in-mnemonic)
 
- )
 
 ;; *************
 ;; FIN:  memoize

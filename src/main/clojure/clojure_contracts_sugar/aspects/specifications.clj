@@ -4,16 +4,11 @@
                      manifest-aspect-specification-key-form-def
                      manifest-aspect-specification-key-form-ctx
                      manifest-aspect-specification-keys)]
-
-            [clojure-contracts-sugar.aspects.definitions :as aspect-definitions
-             :refer (normalise-aspect-definition
-                     create-aspect-constraints-from-definition
-                     final-transform-aspect-constaints-symbol-arguments)]
-
+            [clojure-contracts-sugar.aspects.definitions :as aspect-definitions :refer (normalise-aspect-definition create-aspect-constraints-from-definition final-transform-aspect-constaints-symbol-arguments)]
             [clojure-contracts-sugar.aspects.constraints :as aspect-constraints :refer (aspect-constraint-express-contract)]
-
             [clojure-contracts-sugar.utils.utils :as utils]
-            [clojure-carp :as carp :refer (surprise-exception missing-exception duplicate-exception trace-value-entr trace-value-exit trace-value-call trace-value-body)]))
+            [clojure-carp :as carp :refer (surprise-exception missing-exception duplicate-exception)]))
+
 
 ;; **********************************
 ;; BEG: validate aspect specification
