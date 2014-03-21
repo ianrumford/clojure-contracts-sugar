@@ -5,7 +5,7 @@
 #+STARTUP: hidestars
 #+TAGS: noexport(e)
 #+EXPORT_EXCLUDE_TAGS: noexport
-#+OCTOPRESS_CATEGORIES: clojure aspect contract sugarh
+#+OCTOPRESS_CATEGORIES: clojure aspect contract sugar macro
 #+OCTOPRESS_COMMENTS: getting started with clojure-contracts-sugar
 #+PROPERTY: :mkdirp yes
 #+OPTIONS: texht:t
@@ -144,7 +144,7 @@ The jar is on [Clojars][ClojarsClojureContractsSugar]:
 [Leiningen][LeiningenHome] dependency information:
 
 #+BEGIN_SRC clojure :tangle no
-[name.rumford/clojure-contracts-sugar "0.1.0"]
+[name.rumford/clojure-contracts-sugar "0.2.0"]
 #+END_SRC
 
 [Maven][MavenHome] dependency information:
@@ -153,7 +153,7 @@ The jar is on [Clojars][ClojarsClojureContractsSugar]:
 <dependency>
   <groupId>name.rumford</groupId>
   <artifactId>clojure-contracts-sugar</artifactId>
-  <version>0.1.0</version>
+  <version>0.2.0</version>
 </dependency>
 #+END_SRC
 
@@ -202,18 +202,11 @@ lein run -m aspect-examples1
 
 #+begin_src clojure :mkdirp yes :exports none :tangle ../examples/aspect-examples/src/main/clojure/aspect_examples1.clj
 (ns aspect-examples1
-  (:require [clojure.core.contracts :as ccc]
-            [clojure-contracts-sugar :as ccs
+  (:require [clojure-contracts-sugar :as ccs
              :refer (apply-contract-aspects
                      update-contract-aspects
-                     configure-contracts-store)]
-            [clojure-carp :as carp]
-            [taoensso.timbre.profiling :as profiling]))
-
-;;(carp/macro-set-trace true *ns* "ENTR")
-;;(carp/trace-configure :first-telltale-format-specification "%-40s")
+                     configure-contracts-store)]))
 #+end_src
-
 
 The examples use a couple of harness functions - _will-work_ and
 _will-fail_ - to run tests.
@@ -251,21 +244,6 @@ catches the *AssertionError* expected to be thrown.
 (defn run-all-tests
  [& args]
 #+end_src
-
-# The examples use some functions and values for the examples below, they are given here so the following makes more sense
-
-# #+BEGIN_SRC clojure :tangle ../examples/aspect-examples/src/main/clojure/aspect_examples1.clj
-# ;; Test Values
-
-# ;; (def test-map1 {:a 1 :b 2 :c 3})
-# ;; (def test-map2 {1 :a 2 :b 3 :c})
-# ;; (def test-vector1 [1 2 3])
-
-# ;; Test Functions
-
-# (defn identity-fn1 [x] (println "IDENTITY-FN1: x" (class x) x) x)
-# ;;; (def spit-vector-fn1 (fn [x] (println "SPIT-VECTOR-FN1: x" (class x) x "%" test-vector1) test-vector1))
-# #+END_SRC
 
 * Using Contract Aspects - Apply v Update
 
@@ -415,45 +393,6 @@ Essentially the same example as above except the source function but _any-fn_ is
 
 (will-fail any-fn [1 2 3])
 #+END_SRC
-
-
-# * Using Multiple Constraints in the Same Assertion
-
-# Multiple constraints can be given in an assertion vector in the call to e.g.
-# _apply-contract-aspects_. 
-
-# For example, this assertion constrains the function to suck and spit a map
-# with keyword keys and numeric values:
-
-# #+BEGIN_SRC clojure :tangle no
-# [map? (every? keyword? (keys arg0)) (every? number? (vals arg0))]
-# #+END_SRC
-
-# ** Example - using multiple constraints for the same argument
-
-# #+begin_src clojure :tangle ../examples/aspect-examples/src/main/clojure/aspect_examples1.clj
-# ;; Example - using multiple assertions
-
-# ;; In this example, the assertion constrains the function to suck and
-# ;; spit a map with keywords keys and numeric values.
-
-# (def map-keyword-keys-numeric-vals-fn1 (apply-contract-aspects (fn [x] x) [map? (every? keyword? (keys arg0)) (every? number? (vals arg0))]))
-
-# ;; This will work
-
-# (will-work map-keyword-keys-numeric-vals-fn1 map-fn1 {:a 1 :b 2 :c 3})
-
-# ;; But these will fail as either a key or value fails their contract
-
-# (will-fail map-keyword-keys-numeric-vals-fn1 map-fn1 {:a :x :b 2 :c 3})
-# (will-fail map-keyword-keys-numeric-vals-fn1 map-fn1 {"x" 1 :b 2 :c 3})
-# #+end_src
-
-# #+BEGIN_QUOTE
-# Note that _arg0_ is used to refer to the (map) argument.  
-# EXPLAIN POSITIONAL? / BARE symbols e.g. map?
-# More important later
-# #+END_QUOTE
 
 * Applying Contracts to Many Arguments and the Result
 
@@ -1251,7 +1190,7 @@ obstacle.  Clojure, as many acknowledge, rocks!
 
 
 #+BEGIN_SRC clojure  :exports none :tangle ../examples/aspect-examples/src/main/clojure/aspect_examples1.clj
-;; Close thr wrapper
+;; Close the wrapper
 )
 #+end_src
 
@@ -1269,11 +1208,7 @@ obstacle.  Clojure, as many acknowledge, rocks!
   :url "https://github.com/ianrumford/clojure-contracts-sugar"
   :license {:name "MIT" :url "http://opensource.org/licenses/MIT"}
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [org.clojure/core.contracts "0.0.5"]
-                 [name.rumford/clojure-carp "0.1.0"]
-                 [org.clojure/core.memoize "0.5.6"]
-                 [com.taoensso/timbre "3.0.0"]
-                 [name.rumford/clojure-contracts-sugar "0.1.0"]]
+                 [name.rumford/clojure-contracts-sugar "0.2.0"]]
   :source-paths ["src/main/clojure"])
 #+END_SRC
 
